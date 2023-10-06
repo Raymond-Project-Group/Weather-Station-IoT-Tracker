@@ -63,7 +63,7 @@ void pod_gpio_display_view_redraw_widget(App* app)
     length = snprintf(NULL,0,"%6.2f",(double)temp)+1;//finds num of digits in temperature
     char t[length];//creates string for temp
     snprintf(t,length,"%6.2f",(double)temp);//stores temp in string
-    widget_add_string_element(app->widget,tX+13,tY+17,AlignLeft,AlignBottom,FontPrimary,t);
+    widget_add_string_element(app->widget,tX+14,tY+13,AlignLeft,AlignBottom,FontPrimary,t);
     
     float humid = data->humidity;
     switch(app->settings->humidity)
@@ -72,7 +72,7 @@ void pod_gpio_display_view_redraw_widget(App* app)
             humidityUnitWidget = (Icon*)&I_percent_11x15;
             break;
         case absolute:
-            humidityUnitWidget = (Icon*)&I_kg_m3_11x15;
+            humidityUnitWidget = (Icon*)&I_g_m3_11x15;
             humid = humidity_conversion(relative,C,absolute,humid,data->temperature);
             break;
         default:
@@ -84,7 +84,7 @@ void pod_gpio_display_view_redraw_widget(App* app)
     length = snprintf(NULL,0,"%6.2f",(double)humid)+1;//finds num of digits in humidity
     char h[length];//creates string for humidity
     snprintf(h,length,"%6.2f",(double)humid);//stores humidity in string
-    widget_add_string_element(app->widget,hX+11,hY+17,AlignLeft,AlignBottom,FontPrimary,h);
+    widget_add_string_element(app->widget,hX+11,hY+13,AlignLeft,AlignBottom,FontPrimary,h);
 
     float press = data->pressure;
     switch(app->settings->pressure)
@@ -120,7 +120,7 @@ void pod_gpio_display_view_redraw_widget(App* app)
     length = snprintf(NULL,0,"%6.2f",(double)press)+1;//finds num of digits in pressure
     char p[length];//creates pressure for temp
     snprintf(p,length,"%6.2f",(double)press);//stores temp in pressure
-    widget_add_string_element(app->widget,pX+9,pY+17,AlignLeft,AlignBottom,FontPrimary,p);
+    widget_add_string_element(app->widget,pX+9,pY+13,AlignLeft,AlignBottom,FontPrimary,p);
 
 }
 static bool pod_gpio_display_input_callback(InputEvent* input_event, void*context)//called when button is pressed
@@ -143,20 +143,8 @@ static bool pod_gpio_display_input_callback(InputEvent* input_event, void*contex
     return consumed;
     //return false;
 }
-/*
-void pod_gpio_display_render_callback(Canvas* canvas, void* context)//Updates screen
-{
-    UNUSED(canvas);
-    App* app = context;
-    if(furi_mutex_acquire(app->mutex, 200) != FuriStatusOk) //aquires mutex permission 
-    { 
-        return;
-    }
-    pod_gpio_display_view_redraw_widget(app); //redraws widgets
-    furi_mutex_release(app->mutex); //releases mutex
-}*/
 
-void pod_gpio_display_tick_callback(void* context) 
+void pod_gpio_display_tick_callback(void* context)//every second this is called to read the bme and update the display
 {
     App* app = context;
     furi_assert(app->queue);
@@ -165,15 +153,8 @@ void pod_gpio_display_tick_callback(void* context)
     // It's OK to lose this event if system overloaded (so we don't pass a wait value for 3rd parameter.)
     FURI_LOG_I(TAG,"Updating Message Queue");
     furi_message_queue_put(queue, &event, 0);
-    //view_dispatcher_send_custom_event(app->view_dispatcher,GPIO_Event_Type_Tick);
     scene_manager_handle_tick_event(app->scene_manager);
 }
-/*static void pod_gpio_tick_event_callback_test(void* context)
-{
-    App* app = context;
-    FURI_LOG_I(TAG,"TICK EVENT CALLBACK WORKS");
-    scene_manager_handle_tick_event(app->scene_manager);
-}*/
 void pod_gpio_display_scene_on_enter(void* context)
 {
     FURI_LOG_I(TAG, "GPIO Display Scene entered");

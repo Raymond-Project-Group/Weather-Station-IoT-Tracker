@@ -1,6 +1,7 @@
 #include "app.h"
 #include <math.h>
 #include "unit_conversion.h"
+#include "pod.h"
 
 float temperature_conversion(int start, int end, float temp)
 {
@@ -28,9 +29,10 @@ float humidity_conversion(int startHumid, int startTemp, int end, float humid, f
     if(startHumid == end){
         return humid;
     }
-    float pc = 22.0640; //Critical Pressure in MPa
+    float pc = 22.0640 * 1000000; //Critical Pressure in Pa
     float tc = 647.096; //Critical Temperature in Kelvin 
     float t = temperature_conversion(startTemp, K, temp);//convert temp to Kelvin
+    FURI_LOG_I(TAG,"%f",(double)t);
     float a1 = -7.85951783;
     float a2 = 1.84408259;
     float a3 = -11.7866497;
@@ -38,11 +40,13 @@ float humidity_conversion(int startHumid, int startTemp, int end, float humid, f
     float a5 = -15.9618719;
     float a6 = 1.80122502;
     float tau = 1 - t/tc;
-    float ps = pc * expf((tc/t) * (a1*tau + a2*powf(tau,1.5) + a3*powf(tau,3) + a4*powf(tau,3.5)+a5*powf(tau,4.5) + a6*powf(tau,7.5)));
+    FURI_LOG_I(TAG,"%f",(double)tau);
+    float ps = pc * expf((tc/t) * (a1*tau + a2*powf(tau,1.5) + a3*powf(tau,3) + a4*powf(tau,3.5)+a5*powf(tau,4) + a6*powf(tau,7.5)));
     float rw = 461.5; // Specific gas constant in J/(kg K)
     if(end == absolute){
         float pa = ps * humid/100;
-        return pa/(rw*t); //returns in kg/(m^3)
+        //return pa;
+        return pa*1000/(rw*t); //returns in g/(m^3)
     }
     else{
         float pa = humid*rw*t;
