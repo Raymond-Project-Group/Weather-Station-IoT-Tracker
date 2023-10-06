@@ -2,7 +2,7 @@
 #define APP_H
 
 #include "flipper.h"
-
+#include "bme280.h"
 
 typedef enum {
     F,
@@ -10,23 +10,23 @@ typedef enum {
     K,
     Temp_Count,
 } TemperatureUnits;
-extern char* TemperatureNames[Temp_Count];// = {"F","C","K"};
+extern const char* TemperatureNames[Temp_Count];// = {"F","C","K"};
 typedef enum {
     relative,
     absolute,
     Humid_Count,
 } HumidityUnits;
-extern char* HumidityNames[Humid_Count];// = {"Relative","Absolute"};
+extern const char* HumidityNames[Humid_Count];// = {"Relative","Absolute"};
 typedef enum {
-    mBar,
+    mbar,
     hPa,
-    psi,
+    PSI,
     inHg,
     mmHg,
-    torr,
+    Torr,
     Pressure_Count,
 } PressureUnits;
-extern char* PressureNames[Pressure_Count];// = {"mBar","hPa","psi","inHg","mmHg","torr"};
+extern const char* PressureNames[Pressure_Count];// = {"mbar","hPa","PSI","inHg","mmHg","Torr"};
 
 
 typedef struct{
@@ -41,7 +41,12 @@ typedef struct {//To view examples of modules: https://brodan.biz/blog/a-visual-
     Submenu* submenu;
     TextBox* text_box;
     VariableItemList* variable_item_list;
+    Widget* widget;
     AppSettings* settings;
+    FuriMessageQueue* queue; // Message queue (items to process).
+    FuriMutex* mutex; // Used to provide thread safe access to data.
+    FuriTimer* timer; //Used for tick callbacks
+    Bme280Context* bme280;
 } App;
 
 App* app_alloc();
