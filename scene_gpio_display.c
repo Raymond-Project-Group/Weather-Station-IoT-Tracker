@@ -4,6 +4,7 @@
 #include "scene_gpio_display.h"
 #include "bme280.h"
 #include "pod.h"
+#include "unit_conversion.h"
 
 #include <applications/services/gui/modules/widget.h>
 #include <applications/services/gui/modules/widget_elements/widget_element.h>
@@ -39,16 +40,19 @@ void pod_gpio_display_view_redraw_widget(App* app)
     Icon* temperatureUnitWidget;//Temperature's units is the only one included in the icon symbol
     Icon* humidityUnitWidget;
     Icon* pressureUnitWidget;
+    float temp = data->temperature;
     switch(app->settings->temperature)
     {
         case F:
             temperatureUnitWidget = (Icon*)&I_temp_F_11x14;
+            temp = temperature_conversion(C,F,temp);
             break;
         case C:
             temperatureUnitWidget = (Icon*)&I_temp_C_11x14;
             break;
         case K:
             temperatureUnitWidget = (Icon*)&I_temp_K_11x14;
+            temp = temperature_conversion(C,K,temp);
             break;
         default:
             FURI_LOG_E(TAG, "Unrecognised temperature type in pod_gpio_display_view_redraw_widget");
@@ -56,11 +60,12 @@ void pod_gpio_display_view_redraw_widget(App* app)
             return;
     }
     widget_add_icon_element(app->widget, tX+2, tY+3, temperatureUnitWidget);
-    length = snprintf(NULL,0,"%6.2f",(double)data->temperature)+1;//finds num of digits in temperature
+    length = snprintf(NULL,0,"%6.2f",(double)temp)+1;//finds num of digits in temperature
     char t[length];//creates string for temp
-    snprintf(t,length,"%6.2f",(double)data->temperature);//stores temp in string
-    widget_add_string_element(app->widget,tX+15,tY+2,AlignLeft,AlignTop,FontPrimary,t);
+    snprintf(t,length,"%6.2f",(double)temp);//stores temp in string
+    widget_add_string_element(app->widget,tX+13,tY+17,AlignLeft,AlignBottom,FontPrimary,t);
     
+    float humid = data->humidity;
     switch(app->settings->humidity)
     {
         case relative:
@@ -68,6 +73,7 @@ void pod_gpio_display_view_redraw_widget(App* app)
             break;
         case absolute:
             humidityUnitWidget = (Icon*)&I_kg_m3_11x15;
+            humid = humidity_conversion(relative,C,absolute,humid,data->temperature);
             break;
         default:
             FURI_LOG_E(TAG, "Unrecognised humidity type in pod_gpio_display_view_redraw_widget");
@@ -75,11 +81,12 @@ void pod_gpio_display_view_redraw_widget(App* app)
             return;
     }
     widget_add_icon_element(app->widget,hX+49,hY+2,humidityUnitWidget);
-    length = snprintf(NULL,0,"%6.2f",(double)data->humidity)+1;//finds num of digits in humidity
+    length = snprintf(NULL,0,"%6.2f",(double)humid)+1;//finds num of digits in humidity
     char h[length];//creates string for humidity
-    snprintf(h,length,"%6.2f",(double)data->humidity);//stores humidity in string
-    widget_add_string_element(app->widget,hX+17,hY+2,AlignLeft,AlignTop,FontPrimary,h);
+    snprintf(h,length,"%6.2f",(double)humid);//stores humidity in string
+    widget_add_string_element(app->widget,hX+11,hY+17,AlignLeft,AlignBottom,FontPrimary,h);
 
+    float press = data->pressure;
     switch(app->settings->pressure)
     {
         case mbar:
@@ -90,15 +97,19 @@ void pod_gpio_display_view_redraw_widget(App* app)
             break;
         case Torr:
             pressureUnitWidget = (Icon*)&I_torr_15x15;
+            press = pressure_conversion(mbar,Torr,press);
             break;
         case PSI:
             pressureUnitWidget = (Icon*)&I_PSI_15x15;
+            press = pressure_conversion(mbar,PSI,press);
             break;
         case mmHg:
             pressureUnitWidget = (Icon*)&I_mm_hg_15x15;
+            press = pressure_conversion(mbar,mmHg,press);
             break;
         case inHg:
             pressureUnitWidget = (Icon*)&I_in_hg_15x15;
+            press = pressure_conversion(mbar,inHg,press);
             break;
         default:
             FURI_LOG_E(TAG, "Unrecognised pressure type in pod_gpio_display_view_redraw_widget");
@@ -106,10 +117,10 @@ void pod_gpio_display_view_redraw_widget(App* app)
             return;
     }
     widget_add_icon_element(app->widget,pX+45,pY+2,pressureUnitWidget);
-    length = snprintf(NULL,0,"%6.2f",(double)data->pressure)+1;//finds num of digits in pressure
+    length = snprintf(NULL,0,"%6.2f",(double)press)+1;//finds num of digits in pressure
     char p[length];//creates pressure for temp
-    snprintf(p,length,"%6.2f",(double)data->pressure);//stores temp in pressure
-    widget_add_string_element(app->widget,pX+19,pY+2,AlignLeft,AlignTop,FontPrimary,p);
+    snprintf(p,length,"%6.2f",(double)press);//stores temp in pressure
+    widget_add_string_element(app->widget,pX+9,pY+17,AlignLeft,AlignBottom,FontPrimary,p);
 
 }
 static bool pod_gpio_display_input_callback(InputEvent* input_event, void*context)//called when button is pressed
@@ -121,6 +132,12 @@ static bool pod_gpio_display_input_callback(InputEvent* input_event, void*contex
     if(event.input.type == InputTypeShort && event.input.key == InputKeyBack) {
         view_dispatcher_send_custom_event(app->view_dispatcher,GPIO_Event_Exit);
         consumed = true;
+    }
+    else if(event.input.type == InputTypeShort && event.input.key == InputKeyUp){
+        app->bme280->address = 0x76;
+    }
+    else if(event.input.type == InputTypeShort && event.input.key == InputKeyDown){
+        app->bme280->address = 0xEC;
     }
     //furi_message_queue_put(app->queue, &event, FuriWaitForever);
     return consumed;
@@ -178,50 +195,6 @@ void pod_gpio_display_scene_on_enter(void* context)
     // Update the screen fairly frequently (every 1000 milliseconds = 1 second.)
     app->timer = furi_timer_alloc(pod_gpio_display_tick_callback, FuriTimerTypePeriodic, app);
     furi_timer_start(app->timer, 1000);
-    //view_dispatcher_set_tick_event_callback(app->view_dispatcher,pod_gpio_tick_event_callback_test,100);//Every .1 seconds, send out the tick event callback
-    //if(bme_ready(app->bme280)){
-    //    FURI_LOG_I(TAG,"BME280 Read Successfully");
-    //}
-    /*FURI_LOG_I(TAG,"Entering Loop");
-    
-    // Main loop
-    GpioDisplayEvent event;
-    bool processing = true;
-    do {
-        FURI_LOG_I(TAG,"Entering Loop1");
-        if(furi_message_queue_get(app->queue, &event, FuriWaitForever) == FuriStatusOk) {
-            FURI_LOG_I(TAG,"Entering Loop2");
-            switch(event.type) {
-                case GPIO_Event_Type_Key:
-                    FURI_LOG_I(TAG,"Entering Loop3");
-                    // Short press of back button exits the program.
-                    if(event.input.type == InputTypeShort && event.input.key == InputKeyBack) {
-                        processing = false;
-                    }
-                    break;
-                case GPIO_Event_Type_Tick:
-                    FURI_LOG_I(TAG,"Entering Loop4");
-                    // Every timer tick we update the i2c status.
-                    furi_mutex_acquire(app->mutex, FuriWaitForever);
-                    FURI_LOG_I(TAG,"BME280 Reading");
-                    if(bme_read_sensors(app->bme280)){
-                        FURI_LOG_I(TAG,"BME280 Read Successfully");
-                    }
-                    furi_mutex_release(app->mutex);
-                    break;
-                default:
-                    break;
-            }
-            // Send signal to update the screen (callback will get invoked at some point later.)
-            //view_port_update(NULL);
-        } else {
-            // We had an issue getting message from the queue, so exit application.
-            processing = false;
-        }
-    } while(processing);*/
-
-
-    //pod_gpio_display_scene_on_exit(app);
 }
 
 bool pod_gpio_display_scene_on_event(void* context, SceneManagerEvent event)

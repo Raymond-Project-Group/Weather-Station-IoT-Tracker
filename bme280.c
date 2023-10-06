@@ -12,7 +12,7 @@ static float bme_compensate_temperature(Bme280Data* data,int32_t uncal_temp)
             ((int32_t)data->temp_cal.dig_T3)) >>
            14;
     data->temp_fine = var1 + var2;//temperature correction value
-    return ((data->temp_fine * 5 + 128) >> 8) / 100.0f;
+    return ((data->temp_fine * 5 + 128) >> 8) / 100.0f; //returns celsius
 }
 
 static float bme_compensate_pressure(Bme280Data* data, int32_t uncal_press) {
@@ -40,7 +40,7 @@ static float bme_compensate_pressure(Bme280Data* data, int32_t uncal_press) {
            12;
     var2 = (((int32_t)(p >> 2)) * ((int32_t)data->press_cal.dig_P8)) >> 13;
     p = (uint32_t)((int32_t)p + ((var1 + var2 + data->press_cal.dig_P7) >> 4));
-    return p;
+    return p/100.0;//returns hPa or mbar
 }
 
 static float bme_compensate_humidity(Bme280Data* data, int32_t uncal_humid) {
@@ -68,7 +68,7 @@ static float bme_compensate_humidity(Bme280Data* data, int32_t uncal_humid) {
 
     v_x1_u32r = (v_x1_u32r < 0 ? 0 : v_x1_u32r);
     v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
-    return ((uint32_t)(v_x1_u32r >> 12)) / 1024.0f;
+    return ((uint32_t)(v_x1_u32r >> 12)) / 1024.0f; //returns relative
 }
 
 
@@ -77,7 +77,7 @@ Bme280Context* bme_init()
 {
     Bme280Context* bme = malloc(sizeof(Bme280Context));
     Bme280Data* data = malloc(sizeof(Bme280Data));
-    bme->address = 0xEC;
+    bme->address = 0xEC;//Ox76 or 0x77
     data->temperature = 0xFF;
     //data->temp_xlsb = 0xFF;
     data->humidity = 0xFF;
@@ -88,8 +88,69 @@ Bme280Context* bme_init()
     bme->tick_count = 0;
     bme->data = data;
     bme->state = BME_Disabled;
-    bme_sensor_callibration_values(bme);
+    bme_set_operating_modes(bme);
+    //bme_sensor_callibration_values(bme);
     return bme;
+}
+
+bool bme_reset(Bme280Context* bme)
+{
+    bool result = false;
+    uint8_t reset_reg = 0xE0;
+    uint8_t reset_command = 0xB6;
+    uint8_t buffer[1] = {reset_command};
+    furi_hal_i2c_acquire(&furi_hal_i2c_handle_external);
+    //unitemp_i2c_writeReg(i2c_sensor, 0xE0, 0xB6);
+    result = furi_hal_i2c_write_mem(&furi_hal_i2c_handle_external,bme->address,reset_reg,buffer,1,10);//reset bme280
+    furi_hal_i2c_release(&furi_hal_i2c_handle_external);
+    return result;
+}
+
+bool bme_set_operating_modes(Bme280Context* bme)//based off unitemp_BMx280_init(Sensor* sensor) from https://github.com/quen0n/unitemp-flipperzero/blob/1a157681ff64a8828d8a062fcc592aeb1253d6a0/sensors/BMx280.c#L104 
+{
+    bool result = false;
+    uint8_t reg_ctrl_hum = 0xF2;
+    uint8_t reg_ctrl_meas = 0xF4;
+    uint8_t reg_config = 0xF5;
+    uint8_t buffer[1] = {0};
+
+    
+    furi_hal_i2c_acquire(&furi_hal_i2c_handle_external);
+    
+    //setting up operating modes
+    buffer[0] = 0x01;//oversampling 1 for ctrl_hum(00000001) https://cdn-learn.adafruit.com/assets/assets/000/115/588/original/bst-bme280-ds002.pdf?1664822559 p28
+
+    if(furi_hal_i2c_write_mem(&furi_hal_i2c_handle_external,bme->address,reg_ctrl_hum,buffer,1,10))//idk the purpose of this, it seems to be the same command twice
+    {   
+        furi_hal_i2c_read_mem(&furi_hal_i2c_handle_external,bme->address,reg_ctrl_hum,buffer,1, 10);
+        furi_hal_i2c_write_mem(&furi_hal_i2c_handle_external,bme->address,reg_ctrl_hum,buffer,1,10);
+        
+        buffer[0] = 0b01001111;//oversampling 2 for temp(010), oversampling 4 for pressure(011), and normal mode(11) https://cdn-learn.adafruit.com/assets/assets/000/115/588/original/bst-bme280-ds002.pdf?1664822559 p29
+        if(furi_hal_i2c_write_mem(&furi_hal_i2c_handle_external,bme->address,reg_ctrl_meas,buffer,1,10))
+        {
+            buffer[0] = 0b10010000;//500ms standby time(100), filter coef16(100), 3-wire interface disabled(00) https://cdn-learn.adafruit.com/assets/assets/000/115/588/original/bst-bme280-ds002.pdf?1664822559 p30
+            if(furi_hal_i2c_write_mem(&furi_hal_i2c_handle_external,bme->address,reg_config,buffer,1,10))//setting up polling period and filtering values
+            {
+                result = true;
+            }    
+        }
+    }
+    furi_hal_i2c_release(&furi_hal_i2c_handle_external);
+    if(result)
+    {
+        result = bme_sensor_callibration_values(bme);
+    }
+    return result;
+}
+
+bool bme_sleep_mode(Bme280Context* bme)
+{
+    uint8_t reg_ctrl_meas = 0xF4;
+    uint8_t buffer[1] = {0}; //sleep mode(00) https://cdn-learn.adafruit.com/assets/assets/000/115/588/original/bst-bme280-ds002.pdf?1664822559 p30
+    furi_hal_i2c_acquire(&furi_hal_i2c_handle_external);
+    bool result = furi_hal_i2c_write_mem(&furi_hal_i2c_handle_external,bme->address,reg_ctrl_meas,buffer,1,10);
+    furi_hal_i2c_release(&furi_hal_i2c_handle_external);
+    return result;
 }
 
 void bme_update_status(Bme280Context* bme)
@@ -102,6 +163,45 @@ void bme_update_status(Bme280Context* bme)
         }
     }
 }
+
+bool bme_sensor_callibration_values(Bme280Context* bme){
+    //bool result = false;
+    uint8_t buffer[7] = {0}; 
+    uint8_t  temp_addr= 0x88;//temp callibration address
+    uint8_t  press_addr = 0x8E;//pressure callibration address
+    uint8_t  hum_h1_addr = 0xA1;//humidity callibration address
+    uint8_t hum_h2_addr = 0xE1;
+    furi_hal_i2c_acquire(&furi_hal_i2c_handle_external);
+    if(!furi_hal_i2c_read_mem(&furi_hal_i2c_handle_external,bme->address,temp_addr,(uint8_t*)&bme->data->temp_cal,6,10))//if temp callibration read fails
+    {
+        furi_hal_i2c_release(&furi_hal_i2c_handle_external);//release
+        return false;
+    }
+    if(!furi_hal_i2c_read_mem(&furi_hal_i2c_handle_external,bme->address,press_addr,(uint8_t*)&bme->data->press_cal,18,10))//if pressure callibration fails
+    {
+        furi_hal_i2c_release(&furi_hal_i2c_handle_external);//release
+        return false;
+    }
+    if(!furi_hal_i2c_read_mem(&furi_hal_i2c_handle_external,bme->address,hum_h1_addr,buffer,1,10))//if humidity part 1 fails
+    {
+        furi_hal_i2c_release(&furi_hal_i2c_handle_external);//release
+        return false;
+    }
+    bme->data->hum_cal.dig_H1 = buffer[0];
+    if(!furi_hal_i2c_read_mem(&furi_hal_i2c_handle_external,bme->address,hum_h2_addr,buffer,7,10))//if humidity part 2 fails
+    {
+        furi_hal_i2c_release(&furi_hal_i2c_handle_external);//release
+        return false;
+    }
+    bme->data->hum_cal.dig_H2 = (uint16_t)(buffer[0] | ((uint16_t)buffer[1] << 8));
+    bme->data->hum_cal.dig_H3 = buffer[2];
+    bme->data->hum_cal.dig_H4 = ((int16_t)buffer[3] << 4) | (buffer[4] & 0x0F);
+    bme->data->hum_cal.dig_H5 = (buffer[4] & 0x0F) | ((int16_t)buffer[5] << 4);
+    bme->data->hum_cal.dig_H6 = buffer[6];
+    furi_hal_i2c_release(&furi_hal_i2c_handle_external);//release
+    return true;
+}
+
 bool bme_find_address(Bme280Context* bme)//it should be 0x76 or 0x77, but only 0xEC has been working for me
 {
     bool t = false;
@@ -118,45 +218,6 @@ bool bme_find_address(Bme280Context* bme)//it should be 0x76 or 0x77, but only 0
 
     furi_hal_i2c_release(&furi_hal_i2c_handle_external);
     return t;
-}
-
-bool bme_sensor_callibration_values(Bme280Context* bme){
-    //bool result = false;
-    uint8_t buffer[7] = {0}; 
-    uint8_t  temp_addr= 0x88;//temp callibration address
-    uint8_t  press_addr = 0x8E;//pressure callibration address
-    uint8_t  hum_h1_addr = 0xA1;//humidity callibration address
-    uint8_t hum_h2_addr = 0xE1;
-    furi_hal_i2c_acquire(&furi_hal_i2c_handle_external);
-    if(!furi_hal_i2c_read_mem(&furi_hal_i2c_handle_external,bme->address,temp_addr,(uint8_t*)&bme->data->temp_cal,6,10))
-    {
-        furi_hal_i2c_release(&furi_hal_i2c_handle_external);
-        return false;
-    }
-    if(!furi_hal_i2c_read_mem(&furi_hal_i2c_handle_external,bme->address,press_addr,(uint8_t*)&bme->data->press_cal,18,10))
-    {
-        furi_hal_i2c_release(&furi_hal_i2c_handle_external);
-        return false;
-    }
-    if(!furi_hal_i2c_read_mem(&furi_hal_i2c_handle_external,bme->address,hum_h1_addr,buffer,1,10))
-    {
-        furi_hal_i2c_release(&furi_hal_i2c_handle_external);
-        return false;
-    }
-    bme->data->hum_cal.dig_H1 = buffer[0];
-    if(!furi_hal_i2c_read_mem(&furi_hal_i2c_handle_external,bme->address,hum_h2_addr,buffer,7,10))
-    {
-        furi_hal_i2c_release(&furi_hal_i2c_handle_external);
-        return false;
-    }
-    bme->data->hum_cal.dig_H2 = (uint16_t)(buffer[0] | ((uint16_t)buffer[1] << 8));
-    bme->data->hum_cal.dig_H3 = buffer[2];
-    bme->data->hum_cal.dig_H4 = ((int16_t)buffer[3] << 4) | (buffer[4] & 0x0F);
-    bme->data->hum_cal.dig_H5 = (buffer[4] & 0x0F) | ((int16_t)buffer[5] << 4);
-    bme->data->hum_cal.dig_H6 = buffer[6];
-    bme->data->pressure=0x04;
-    furi_hal_i2c_release(&furi_hal_i2c_handle_external);
-    return true;
 }
 
 bool bme_read_sensors(Bme280Context* bme){
@@ -200,6 +261,7 @@ bool bme_read_sensors(Bme280Context* bme){
 }
 void bme_free(Bme280Context* bme)
 {
+    bme_sleep_mode(bme);
     furi_string_free(bme->data->buffer);
     free(bme->data);
     free(bme);

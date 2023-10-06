@@ -74,5 +74,8 @@ bool bme_read_sensors(Bme280Context* bme);
 bool bme_ready(Bme280Context* bme);
 void bme_free(Bme280Context* bme);
 bool bme_sensor_callibration_values(Bme280Context* bme);
+bool bme_find_address(Bme280Context* bme);//it should be 0x76 or 0x77, but only 0xEC has been working for me
+bool bme_sleep_mode(Bme280Context* bme);
+bool bme_set_operating_modes(Bme280Context* bme);
 
 #endif

@@ -16,7 +16,7 @@ float temperature_conversion(int start, int end, float temp)
     }
 
     if(end == F){
-        return (cels + 32) * 9/5;
+        return (cels * 9/5) + 32;
     }
     else if(end == K){
         return cels + 273.15;

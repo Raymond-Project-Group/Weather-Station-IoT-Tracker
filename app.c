@@ -34,7 +34,7 @@ AppSettings* app_settings_alloc(){//allocate space for appsettings
 }
 
 void app_init_settings(App* app){//initialize appsettings
-    app->settings->temperature = 0;
+    app->settings->temperature = 1;
     app->settings->humidity = 0;
     app->settings->pressure = 0;
 }
