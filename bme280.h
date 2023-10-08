@@ -12,10 +12,10 @@
 } I2cState;*/
 
 typedef enum {
-    WorkerEvtStop = (1 << 0),
-    WorkerEvtTick = (1 << 1),
-} WorkerEvtFlags;
-#define WORKER_ALL_EVENTS (WorkerEvtStop | WorkerEvtTick)
+    BmeWorkerEvtStop = (1 << 0),
+    BmeWorkerEvtTick = (1 << 1),
+} BmeWorkerEvtFlags;
+#define BME_WORKER_ALL_EVENTS (BmeWorkerEvtStop | BmeWorkerEvtTick)
 
 typedef struct {
     uint16_t dig_T1;
