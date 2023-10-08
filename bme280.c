@@ -319,7 +319,6 @@ void bme_free(Bme280Context* bme)
     {
         bme_deinit_thread(bme);
     }
-    bme_deinit_thread(bme);
     free(bme->data);
     free(bme);
 }
