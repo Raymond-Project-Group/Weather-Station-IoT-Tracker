@@ -17,4 +17,7 @@
 #include <gui/modules/variable_item_list.h>
 #include <pod_icons.h>
 
+#include <furi/core/record.h>
+#include <toolbox/stream/file_stream.h>
+
 #endif

@@ -47,6 +47,8 @@ typedef struct {//To view examples of modules: https://brodan.biz/blog/a-visual-
     FuriMutex* mutex; //Used to provide thread safe access to data.
     FuriTimer* timer; //Used for tick callbacks
     Bme280Context* bme280;
+    Storage* storage;
+    Stream* file_stream; // output log stream
     //GpsUart* gps_uart;
     uint16_t canvas_y_offset; //Used to note how far off the y-axis we are(scroll up and down functionality) 
 } App;
