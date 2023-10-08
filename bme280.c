@@ -77,13 +77,13 @@ static int32_t bme_worker(void* context)
     Bme280Context* bme = (Bme280Context*) context;
     while(1)
     {
-        uint32_t events = furi_thread_flags_wait(WORKER_ALL_EVENTS, FuriFlagWaitAny, FuriWaitForever);
+        uint32_t events = furi_thread_flags_wait(BME_WORKER_ALL_EVENTS, FuriFlagWaitAny, FuriWaitForever);
         furi_check((events & FuriFlagError) == 0);
-        if(events & WorkerEvtStop) 
+        if(events & BmeWorkerEvtStop) 
         {
             break;
         }
-        if(events & WorkerEvtTick) 
+        if(events & BmeWorkerEvtTick) 
         {
             if(!bme_read_sensors(bme))//if error while reading, stop thread
             {
@@ -97,7 +97,7 @@ static int32_t bme_worker(void* context)
 void bme_update_tickback(void* context)//collect from BME
 {
     Bme280Context* bme = (Bme280Context*) context;
-    furi_thread_flags_set(furi_thread_get_id(bme->thread), WorkerEvtTick);
+    furi_thread_flags_set(furi_thread_get_id(bme->thread), BmeWorkerEvtTick);
 }
 
 
@@ -107,7 +107,7 @@ void bme_deinit_thread(Bme280Context* bme)//shutdown the thread
     furi_assert(bme);
     bme->state = BME_Disabled;
     furi_timer_free(bme->timer);//Stop the timer
-    furi_thread_flags_set(furi_thread_get_id(bme->thread), WorkerEvtStop);
+    furi_thread_flags_set(furi_thread_get_id(bme->thread), BmeWorkerEvtStop);
     furi_thread_join(bme->thread);
     furi_thread_free(bme->thread);
 }
@@ -208,10 +208,10 @@ bool bme_sleep_mode(Bme280Context* bme)
 void bme_update_status(Bme280Context* bme)
 {
     if(bme_ready(bme) && bme->state == BME_Ready){
-        bme->state = BME_Active;
+        //bme->state = BME_Active;
         //bme->data->state = I2C_State_Found;
         if(bme_read_sensors(bme)){
-            bme->state = BME_Finished;
+            bme->state = BME_Active;
         }
     }
 }
