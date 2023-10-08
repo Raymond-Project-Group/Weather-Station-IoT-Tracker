@@ -3,7 +3,7 @@
 
 #include "flipper.h"
 #include "bme280.h"
-
+//#include "./flipperzero-gps/gps_uart.h"
 typedef enum {
     F,
     C,
@@ -43,10 +43,12 @@ typedef struct {//To view examples of modules: https://brodan.biz/blog/a-visual-
     VariableItemList* variable_item_list;
     Widget* widget;
     AppSettings* settings;
-    FuriMessageQueue* queue; // Message queue (items to process).
-    FuriMutex* mutex; // Used to provide thread safe access to data.
+    FuriMessageQueue* queue; //Message queue (items to process).
+    FuriMutex* mutex; //Used to provide thread safe access to data.
     FuriTimer* timer; //Used for tick callbacks
     Bme280Context* bme280;
+    //GpsUart* gps_uart;
+    uint16_t canvas_y_offset; //Used to note how far off the y-axis we are(scroll up and down functionality) 
 } App;
 
 App* app_alloc();

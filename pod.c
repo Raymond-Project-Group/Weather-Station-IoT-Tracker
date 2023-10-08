@@ -19,7 +19,6 @@ int32_t pod_app(void* p) {
     FURI_LOG_I(TAG, "pod app launched");
     
     App* app = app_alloc();
-    app->settings = app_settings_alloc();
     //app->bme280 = bme_init();
     
     app_init_settings(app);

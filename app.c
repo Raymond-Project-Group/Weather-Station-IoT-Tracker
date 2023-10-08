@@ -25,6 +25,11 @@ App* app_alloc() {//allocate and initialize app.  add required views and scenes
     view_dispatcher_add_view(app->view_dispatcher, Pod_Widget_View, widget_get_view(app->widget));//GPIO Display Page
     view_dispatcher_add_view(app->view_dispatcher, Pod_Variable_Item_List_View, variable_item_list_get_view(app->variable_item_list));//Settings Page
 
+
+    
+    app->settings = app_settings_alloc();
+    app->bme280 = bme_init();
+
     return app;
 }
 
@@ -45,7 +50,7 @@ void app_quit(App* app) {//close app
 
 void app_free(App* app) {//free created spaces and close views and settings
     furi_assert(app);
-
+    bme_free(app->bme280);
     free(app->settings);
     //bme_free(app->bme280);
 
