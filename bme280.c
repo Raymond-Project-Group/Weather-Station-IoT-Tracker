@@ -135,8 +135,8 @@ Bme280Context* bme_init()//init BME
     bme->data = data;
     bme->state = BME_Disabled;
     // BME Collection Timer (every 1000 milliseconds = 1 second.)
-    bme->timer = furi_timer_alloc(bme_update_tickback, FuriTimerTypePeriodic, bme);
     if(bme_set_operating_modes(bme)){
+        bme->timer = furi_timer_alloc(bme_update_tickback, FuriTimerTypePeriodic, bme);
         bme_init_thread(bme);
         furi_timer_start(bme->timer, 1000);
         bme->state = BME_Active;
@@ -315,6 +315,10 @@ void bme_free(Bme280Context* bme)
 {
     bme_sleep_mode(bme);
     furi_string_free(bme->data->buffer);
+    if(bme->state == BME_Active) //Otherwise, thread should already be de_init
+    {
+        bme_deinit_thread(bme);
+    }
     bme_deinit_thread(bme);
     free(bme->data);
     free(bme);
