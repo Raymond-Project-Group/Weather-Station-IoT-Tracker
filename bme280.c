@@ -1,9 +1,4 @@
 #include "bme280.h"
-typedef enum {
-    WorkerEvtStop = (1 << 0),
-    WorkerEvtTick = (1 << 1),
-} WorkerEvtFlags;
-#define WORKER_ALL_EVENTS (WorkerEvtStop | WorkerEvtTick)
 
 
 static float bme_compensate_temperature(Bme280Data* data,int32_t uncal_temp) 
@@ -90,8 +85,10 @@ static int32_t bme_worker(void* context)
         }
         if(events & WorkerEvtTick) 
         {
-            //furi_delay_ms(1000);//Every 1 Second
-            bme_read_sensors(bme);
+            if(!bme_read_sensors(bme))//if error while reading, stop thread
+            {
+                bme_deinit_thread(bme);//no need to break, it will break on next loop
+            }
         }
     }
     return 0;
@@ -105,9 +102,11 @@ void bme_update_tickback(void* context)//collect from BME
 
 
 
-void bme_uart_deinit_thread(Bme280Context* bme)//shutdown the thread 
+void bme_deinit_thread(Bme280Context* bme)//shutdown the thread 
 {
     furi_assert(bme);
+    bme->state = BME_Disabled;
+    furi_timer_free(bme->timer);//Stop the timer
     furi_thread_flags_set(furi_thread_get_id(bme->thread), WorkerEvtStop);
     furi_thread_join(bme->thread);
     furi_thread_free(bme->thread);
@@ -137,9 +136,11 @@ Bme280Context* bme_init()//init BME
     bme->state = BME_Disabled;
     // BME Collection Timer (every 1000 milliseconds = 1 second.)
     bme->timer = furi_timer_alloc(bme_update_tickback, FuriTimerTypePeriodic, bme);
-    furi_timer_start(bme->timer, 1000);
-    bme_set_operating_modes(bme);
-    bme_init_thread(bme);
+    if(bme_set_operating_modes(bme)){
+        bme_init_thread(bme);
+        furi_timer_start(bme->timer, 1000);
+        bme->state = BME_Active;
+    }
     //bme_sensor_callibration_values(bme);
     return bme;
 }
@@ -314,8 +315,7 @@ void bme_free(Bme280Context* bme)
 {
     bme_sleep_mode(bme);
     furi_string_free(bme->data->buffer);
-    bme_uart_deinit_thread(bme);
-    furi_timer_free(bme->timer);
+    bme_deinit_thread(bme);
     free(bme->data);
     free(bme);
 }

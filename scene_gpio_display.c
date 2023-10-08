@@ -130,29 +130,41 @@ void pod_gpio_display_view_redraw_widget(App* app)
 {
     FURI_LOG_I(TAG, "Redrawing GPIO View Widgets");
     widget_reset(app->widget);
-
-    //Build the canvas
-    uint8_t tX = 2;
-    uint8_t  tY = 3;    
-    uint8_t  hX = 2;
-    uint8_t  hY = 23;
-    uint8_t  pX = 2;
-    uint8_t  pY = 43;
     widget_add_frame_element(app->widget,0,0,128,64,0); //Flipper screen size is 128x64, this draws a border around it
-
-    if(tY > app->canvas_y_offset)//Should you draw temp?
+    
+    if(app->bme280->state == BME_Disabled)//If initialization failed
     {
-        pod_gpio_display_view_redraw_temperature(app,tX,tY - app->canvas_y_offset);
-    }
-    if(hY > app->canvas_y_offset)//Should you draw humidity?
-    {
-        pod_gpio_display_view_redraw_humidity(app,hX,hY - app->canvas_y_offset);
-    }
-    if(pY > app->canvas_y_offset)//Should you draw pressure?
-    {
-        pod_gpio_display_view_redraw_pressure(app,pX,pY - app->canvas_y_offset);
+        bme_free(app->bme280);//free
+        app->bme280 = bme_init();//reattempt initialization
     }
     
+    if(app->bme280->state == BME_Active)//If init is working
+    {
+        //Build the canvas
+        uint8_t tX = 2;
+        uint8_t  tY = 3;    
+        uint8_t  hX = 2;
+        uint8_t  hY = 23;
+        uint8_t  pX = 2;
+        uint8_t  pY = 43;
+
+        if(tY > app->canvas_y_offset)//Should you draw temp?
+        {
+            pod_gpio_display_view_redraw_temperature(app,tX,tY - app->canvas_y_offset);
+        }
+        if(hY > app->canvas_y_offset)//Should you draw humidity?
+        {
+            pod_gpio_display_view_redraw_humidity(app,hX,hY - app->canvas_y_offset);
+        }
+        if(pY > app->canvas_y_offset)//Should you draw pressure?
+        {
+            pod_gpio_display_view_redraw_pressure(app,pX,pY - app->canvas_y_offset);
+        }
+    }
+    else
+    {
+        widget_add_string_element(app->widget,3,3,AlignLeft,AlignBottom,FontPrimary,"Flipper Failed to Connect to BME280");
+    }
 }
 static bool pod_gpio_display_input_callback(InputEvent* input_event, void*context)//called when button is pressed
 {
@@ -194,6 +206,7 @@ void pod_gpio_display_scene_on_enter(void* context)
 {
     FURI_LOG_I(TAG, "GPIO Display Scene entered");
     App* app = context;
+
     widget_reset(app->widget);
     app->canvas_y_offset = 0;
     //app->bme280 = bme_init();
@@ -217,7 +230,7 @@ bool pod_gpio_display_scene_on_event(void* context, SceneManagerEvent event)
 {
     App* app = context;
     bool consumed = false;
-    UNUSED(app);
+    //UNUSED(app);
     //UNUSED(event);
     switch(event.type){
         case SceneManagerEventTypeTick:

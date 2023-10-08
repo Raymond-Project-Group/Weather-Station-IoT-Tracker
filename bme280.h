@@ -11,6 +11,12 @@
     I2C_State_Write_Read_Success,
 } I2cState;*/
 
+typedef enum {
+    WorkerEvtStop = (1 << 0),
+    WorkerEvtTick = (1 << 1),
+} WorkerEvtFlags;
+#define WORKER_ALL_EVENTS (WorkerEvtStop | WorkerEvtTick)
+
 typedef struct {
     uint16_t dig_T1;
     int16_t dig_T2;
@@ -80,6 +86,6 @@ bool bme_sleep_mode(Bme280Context* bme);
 bool bme_set_operating_modes(Bme280Context* bme);
 void bme_update_tickback(void* context); //Used for timer callback, for thread
 void bme_init_thread(Bme280Context* bme);
-void bme_uart_deinit_thread(Bme280Context* bme);
+void bme_deinit_thread(Bme280Context* bme);
 
 #endif
