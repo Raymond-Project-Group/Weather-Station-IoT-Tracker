@@ -1,6 +1,7 @@
 #include "flipper.h"
 #include "app.h"
 #include "scenes.h"
+#include "logger.h"
 
 const char* TemperatureNames[Temp_Count] = {"F","C","K"};
 const char* HumidityNames[Humid_Count] = {"Relative","Absolute"};
@@ -24,6 +25,9 @@ App* app_alloc() {//allocate and initialize app.  add required views and scenes
     view_dispatcher_add_view(app->view_dispatcher, Pod_Submenu_View, submenu_get_view(app->submenu));//Main Menu Page
     view_dispatcher_add_view(app->view_dispatcher, Pod_Widget_View, widget_get_view(app->widget));//GPIO Display Page
     view_dispatcher_add_view(app->view_dispatcher, Pod_Variable_Item_List_View, variable_item_list_get_view(app->variable_item_list));//Settings Page
+
+    app->storage = furi_record_open(RECORD_STORAGE);
+    app->file_stream = logger_stream_alloc(app->storage);
 
 
     
@@ -67,6 +71,9 @@ void app_free(App* app) {//free created spaces and close views and settings
     submenu_free(app->submenu);
     variable_item_list_free(app->variable_item_list);
     widget_free(app->widget);
+
+    logger_stream_free(app->file_stream);
+    furi_record_close(RECORD_STORAGE);
 
     free(app);
 }

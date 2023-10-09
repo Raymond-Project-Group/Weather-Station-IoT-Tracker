@@ -4,6 +4,7 @@
 #include "scene_gpio_display.h"
 #include "bme280.h"
 #include "pod.h"
+#include "logger.h"
 #include "unit_conversion.h"
 
 #include <applications/services/gui/modules/widget.h>
@@ -229,12 +230,16 @@ void pod_gpio_display_view_redraw_widget(App* app)
     }
     if(app->bme280->state == BME_Disabled)//If initialization failed
     {
+        FURI_LOG_I(TAG, "BME disabled");
         bme_free(app->bme280);//free
         app->bme280 = bme_init();//reattempt initialization
     }
     
     if(app->bme280->state == BME_Active)//If init is working
     {
+
+        FURI_LOG_I(TAG, "BME active");
+
         //Build the canvas
         uint8_t tempX = 2;
         uint8_t tempY = 23;    
@@ -310,6 +315,10 @@ static bool pod_gpio_display_input_callback(InputEvent* input_event, void*contex
         app->canvas_y_offset+=20;
         view_dispatcher_send_custom_event(app->view_dispatcher,GPIO_Display_Scroll_Event);
         consumed = true;
+    }
+    else if (event.input.type == InputTypeShort && event.input.key == InputKeyOk) {
+        view_dispatcher_send_custom_event(app->view_dispatcher, GPIO_Display_Log_Event);
+        consumed = false;
     }
     //furi_message_queue_put(app->queue, &event, FuriWaitForever);
     return consumed;
@@ -396,6 +405,13 @@ bool pod_gpio_display_scene_on_event(void* context, SceneManagerEvent event)
                     pod_gpio_display_view_redraw_widget(app);//redraw widgets
                     furi_mutex_release(app->mutex);
                     consumed = true;
+                    break;
+                case GPIO_Display_Log_Event:
+                    FURI_LOG_I(TAG, "Log Event");
+                    furi_mutex_acquire(app->mutex, FuriWaitForever);
+                    logger_stream_append(app->file_stream, app->bme280->data); // Add new log line using current data
+                    furi_mutex_release(app->mutex);
+                    consumed = false;
                     break;
             }
             break;

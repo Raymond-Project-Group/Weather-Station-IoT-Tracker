@@ -8,6 +8,7 @@ typedef enum{
     GPIO_Display_Tick_Event,
     GPIO_Display_Scroll_Event,
     GPIO_Display_Key_Event,
+    GPIO_Display_Log_Event,
 }GpioDisplayEventType;
 
 typedef struct {

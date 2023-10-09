@@ -52,8 +52,10 @@ typedef struct {//To view examples of modules: https://brodan.biz/blog/a-visual-
     FuriMessageQueue* queue; //Message queue (items to process).
     FuriMutex* mutex; //Used to provide thread safe access to data.
     FuriTimer* timer; //Used for tick callbacks
-    Bme280Context* bme280;
-    GpsUart* gps_uart;
+    Bme280Context* bme280; //BME Module
+    GpsUart* gps_uart; //GPS Module
+    Storage* storage;
+    Stream* file_stream; // output log stream
     uint16_t canvas_y_offset; //Used to note how far off the y-axis we are(scroll up and down functionality) 
 } App;
 
