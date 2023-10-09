@@ -1,7 +1,7 @@
-#include "app.h"
+#include "../app.h"
 #include <math.h>
 #include "unit_conversion.h"
-#include "pod.h"
+#include "../pod.h"
 
 float temperature_conversion(int start, int end, float temp)
 {

@@ -1,7 +1,7 @@
 #ifndef SCENE_GPIO_DISPLAY_H
 #define SCENE_GPIO_DISPLAY_H
 
-#include "flipper.h"
+#include "../flipper.h"
 
 typedef enum{
     GPIO_Display_Exit_Event,

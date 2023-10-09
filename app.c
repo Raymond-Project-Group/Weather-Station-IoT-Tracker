@@ -1,7 +1,7 @@
 #include "flipper.h"
 #include "app.h"
-#include "scenes.h"
-#include "logger.h"
+#include "scenes/scenes.h"
+#include "logger/logger.h"
 
 const char* TemperatureNames[Temp_Count] = {"F","C","K"};
 const char* HumidityNames[Humid_Count] = {"Relative","Absolute"};

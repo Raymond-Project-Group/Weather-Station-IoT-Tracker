@@ -1,5 +1,5 @@
-#include "flipper.h"
-#include "app.h"
+#include "../flipper.h"
+#include "../app.h"
 #include "scenes.h"
 #include "scene_main_menu.h"
 #include "scene_settings.h"

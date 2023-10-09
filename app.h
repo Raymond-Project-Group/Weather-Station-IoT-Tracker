@@ -2,7 +2,7 @@
 #define APP_H
 
 #include "flipper.h"
-#include "bme280.h"
+#include "./bme280/bme280.h"
 #include "./flipperzero-gps/gps_uart.h"
 typedef enum {
     F,
