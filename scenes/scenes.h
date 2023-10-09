@@ -1,7 +1,7 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include "flipper.h"
+#include "../flipper.h"
 #include "scene_main_menu.h"
 #include "scene_gpio_display.h"
 #include "scene_settings.h"

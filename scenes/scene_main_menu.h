@@ -1,7 +1,7 @@
 #ifndef SCENE_MAIN_MENU_H
 #define SCENE_MAIN_MENU_H
 
-#include "flipper.h"
+#include "../flipper.h"
 /** main menu options enum */
 typedef enum {
     Pod_Gpio_Display_Selection,

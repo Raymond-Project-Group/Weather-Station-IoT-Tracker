@@ -3,7 +3,7 @@
 
 #include <toolbox/stream/file_stream.h>
 
-#include "bme280.h"
+#include "../bme280/bme280.h"
 
 
 Stream* logger_stream_alloc(Storage* storage);

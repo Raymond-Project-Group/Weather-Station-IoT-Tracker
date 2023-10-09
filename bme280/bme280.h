@@ -1,7 +1,7 @@
 //This is heavily based off of https://github.com/quen0n/unitemp-flipperzero/blob/master/sensors/BMx280.h 
 #ifndef BME280_H
 #define BME280_H
-#include "flipper.h"
+#include "../flipper.h"
 //#include "app.h"
 /*typedef enum {
     I2C_State_Not_Found,

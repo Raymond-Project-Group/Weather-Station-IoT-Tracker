@@ -1,11 +1,11 @@
-#include "flipper.h"
-#include "app.h"
+#include "../flipper.h"
+#include "../app.h"
 #include "scenes.h"
 #include "scene_gpio_display.h"
-#include "bme280.h"
-#include "pod.h"
-#include "logger.h"
-#include "unit_conversion.h"
+#include "../bme280/bme280.h"
+#include "../pod.h"
+#include "../logger/logger.h"
+#include "../unit_conversion/unit_conversion.h"
 
 #include <applications/services/gui/modules/widget.h>
 #include <applications/services/gui/modules/widget_elements/widget_element.h>
@@ -94,7 +94,7 @@ void pod_gpio_display_view_redraw_satellites(App* app,uint8_t sX, uint8_t sY) //
     GpsStatus* data = app->gps_uart->status;
 
     widget_add_frame_element(app->widget,sX,sY,61,19,0);  //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
-    Icon* satelliteWidget = (Icon*) &I_satelites_15x15;//Temperature's units is the only one included in the icon symbol
+    Icon* satelliteWidget = (Icon*) &I_satellites_15x15;//Temperature's units is the only one included in the icon symbol
     widget_add_icon_element(app->widget, sX+2, sY+3, satelliteWidget);
     length = snprintf(NULL,0,"%d",data->satellites_tracked)+1;//finds num of digits in satellites
     char t[length];//creates string for satellites
