@@ -6,7 +6,7 @@
 const char* TemperatureNames[Temp_Count] = {"F","C","K"};
 const char* HumidityNames[Humid_Count] = {"Relative","Absolute"};
 const char* PressureNames[Pressure_Count] = {"mbar","hPa","PSI","inHg","mmHg","Torr"};
-
+const char* TimeNames[Time_Count] = {"UTC","EST"};
 App* app_alloc() {//allocate and initialize app.  add required views and scenes
     App* app = malloc(sizeof(App));
 
@@ -32,6 +32,7 @@ App* app_alloc() {//allocate and initialize app.  add required views and scenes
 
     
     app->settings = app_settings_alloc();
+    app->gps_uart = gps_uart_enable();
     app->bme280 = bme_init();
 
     return app;
@@ -46,6 +47,7 @@ void app_init_settings(App* app){//initialize appsettings
     app->settings->temperature = 1;
     app->settings->humidity = 0;
     app->settings->pressure = 0;
+    app->settings->time = 0;
 }
 
 void app_quit(App* app) {//close app
@@ -55,6 +57,7 @@ void app_quit(App* app) {//close app
 void app_free(App* app) {//free created spaces and close views and settings
     furi_assert(app);
     bme_free(app->bme280);
+    gps_uart_disable(app->gps_uart);
     free(app->settings);
     //bme_free(app->bme280);
 

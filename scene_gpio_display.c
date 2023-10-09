@@ -12,6 +12,96 @@
 #include <applications/services/gui/view.h>
 
 
+void pod_gpio_display_view_redraw_time(App* app,uint8_t tX, uint8_t tY) //Draw Time
+{
+    int length;
+    GpsStatus* data = app->gps_uart->status;
+
+    widget_add_frame_element(app->widget,tX,tY,61,19,0);  //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
+    Icon* timeWidgetUnits;//Time's units is the included in the icon symbol
+    int8_t hours = data->time_hours;
+    switch(app->settings->time)
+    {
+        case UTC:
+            timeWidgetUnits = (Icon *)&I_time_UTC_11x13;
+            break;
+        case EST:
+            timeWidgetUnits = (Icon *)&I_time_EST_11x13;
+            hours -=4; //This will might be added to unit conversions, but right now it doesnt need to be
+            if(hours<0){
+                hours+=24;
+            }
+            break;
+        default:
+            FURI_LOG_E(TAG, "Unrecognised time type in pod_gpio_display_view_redraw_widget");
+            app_quit(app);
+            return;
+    }
+    widget_add_icon_element(app->widget, tX+2, tY+3, timeWidgetUnits);
+    length = snprintf(NULL,0,"%02d:%02d:%02d",hours,data->time_minutes,data->time_seconds)+1;//finds num of digits in time
+    char t[length];//creates string for time
+    snprintf(t,length,"%02d:%02d:%02d",hours,data->time_minutes,data->time_seconds);//stores time in string
+    widget_add_string_element(app->widget,tX+14,tY+13,AlignLeft,AlignBottom,FontPrimary,t);
+}
+
+void pod_gpio_display_view_redraw_latitude(App* app,uint8_t lX, uint8_t lY) //Draw Latitude
+{
+    int length;
+    GpsStatus* data = app->gps_uart->status;
+
+    widget_add_frame_element(app->widget,lX,lY,61,19,0);  //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
+    Icon* latitudeUnitWidget = (Icon*)&I_latitude_N_10x15;
+    widget_add_icon_element(app->widget, lX+48, lY+2, latitudeUnitWidget);
+    length = snprintf(NULL,0,"%7.4f",(double)data->latitude)+1;//finds num of digits in latitude
+    char t[length];//creates string for latitude
+    snprintf(t,length,"%7.4f",(double)data->latitude);//stores latitude in string
+    widget_add_string_element(app->widget,lX+2,lY+13,AlignLeft,AlignBottom,FontPrimary,t);
+}
+
+void pod_gpio_display_view_redraw_longitude(App* app,uint8_t lX, uint8_t lY) //Draw Longitude
+{
+    int length;
+    GpsStatus* data = app->gps_uart->status;
+
+    widget_add_frame_element(app->widget,lX,lY,61,19,0);  //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
+    Icon* longitudeUnitWidget = (Icon*)&I_longitude_W_10x15;
+    widget_add_icon_element(app->widget, lX+48, lY+2, longitudeUnitWidget);
+    length = snprintf(NULL,0,"%7.4f",(double)data->longitude)+1;//finds num of digits in longitude
+    char t[length];//creates string for longitude
+    snprintf(t,length,"%7.4f",(double)data->longitude);//stores longitude in string
+    widget_add_string_element(app->widget,lX+2,lY+13,AlignLeft,AlignBottom,FontPrimary,t);
+}
+
+void pod_gpio_display_view_redraw_altitude(App* app,uint8_t aX, uint8_t aY) //Draw Altitude
+{
+    int length;
+    GpsStatus* data = app->gps_uart->status;
+
+    widget_add_frame_element(app->widget,aX,aY,61,19,0);  //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
+    Icon* altitudeWidget = (Icon*)&I_altitude_10x11;
+    widget_add_icon_element(app->widget, aX+2, aY+4, altitudeWidget);
+    Icon* altitudeUnitWidget = (Icon*)&I_m_10x15;
+    widget_add_icon_element(app->widget, aX+50, aY+2, altitudeUnitWidget);
+    length = snprintf(NULL,0,"%.1f",(double)data->altitude)+1;//finds num of digits in altitude
+    char t[length];//creates string for altitude
+    snprintf(t,length,"%.1f",(double)data->altitude);//stores altitude in string
+    widget_add_string_element(app->widget,aX+14,aY+13,AlignLeft,AlignBottom,FontPrimary,t);
+}
+
+void pod_gpio_display_view_redraw_satellites(App* app,uint8_t sX, uint8_t sY) //Draw Satellites
+{
+    int length;
+    GpsStatus* data = app->gps_uart->status;
+
+    widget_add_frame_element(app->widget,sX,sY,61,19,0);  //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
+    Icon* satelliteWidget = (Icon*) &I_satelites_15x15;//Temperature's units is the only one included in the icon symbol
+    widget_add_icon_element(app->widget, sX+2, sY+3, satelliteWidget);
+    length = snprintf(NULL,0,"%d",data->satellites_tracked)+1;//finds num of digits in satellites
+    char t[length];//creates string for satellites
+    snprintf(t,length,"%d",data->satellites_tracked);//stores satellites in string
+    widget_add_string_element(app->widget,sX+20,sY+13,AlignLeft,AlignBottom,FontPrimary,t);
+}
+
 void pod_gpio_display_view_redraw_temperature(App* app,uint8_t tX, uint8_t tY) //Draw Temperature
 {
     int length;
@@ -132,7 +222,12 @@ void pod_gpio_display_view_redraw_widget(App* app)
     FURI_LOG_I(TAG, "Redrawing GPIO View Widgets");
     widget_reset(app->widget);
     widget_add_frame_element(app->widget,0,0,128,64,0); //Flipper screen size is 128x64, this draws a border around it
-    
+    widget_add_frame_element(app->widget,126,app->canvas_y_offset+2,2,20,0);//Scroll Bar
+    if(app->canvas_y_offset == 0)//Banner
+    {
+        Icon* gpioBanner = (Icon*)&I_gpio_display_banner_90x15;
+        widget_add_icon_element(app->widget,18,5,gpioBanner);
+    }
     if(app->bme280->state == BME_Disabled)//If initialization failed
     {
         FURI_LOG_I(TAG, "BME disabled");
@@ -146,24 +241,54 @@ void pod_gpio_display_view_redraw_widget(App* app)
         FURI_LOG_I(TAG, "BME active");
 
         //Build the canvas
-        uint8_t tX = 2;
-        uint8_t  tY = 3;    
-        uint8_t  hX = 2;
-        uint8_t  hY = 23;
-        uint8_t  pX = 2;
-        uint8_t  pY = 43;
+        uint8_t tempX = 2;
+        uint8_t tempY = 23;    
+        uint8_t humX = 64;
+        uint8_t humY = 23;
+        uint8_t pressX = 2;
+        uint8_t pressY = 43;
+        uint8_t timeX = 64;
+        uint8_t timeY = 43;
+        uint8_t latX = 2;
+        uint8_t latY = 63;
+        uint8_t longX = 64;
+        uint8_t longY = 63;
+        uint8_t altX = 2;
+        uint8_t altY = 83;
+        uint8_t satX = 64;
+        uint8_t satY = 83;
 
-        if(tY > app->canvas_y_offset)//Should you draw temp?
+        if(tempY > app->canvas_y_offset)//Should you draw temp?
         {
-            pod_gpio_display_view_redraw_temperature(app,tX,tY - app->canvas_y_offset);
+            pod_gpio_display_view_redraw_temperature(app,tempX,tempY - app->canvas_y_offset);
         }
-        if(hY > app->canvas_y_offset)//Should you draw humidity?
+        if(humY > app->canvas_y_offset)//Should you draw humidity?
         {
-            pod_gpio_display_view_redraw_humidity(app,hX,hY - app->canvas_y_offset);
+            pod_gpio_display_view_redraw_humidity(app,humX,humY - app->canvas_y_offset);
         }
-        if(pY > app->canvas_y_offset)//Should you draw pressure?
+        if(pressY > app->canvas_y_offset)//Should you draw pressure?
         {
-            pod_gpio_display_view_redraw_pressure(app,pX,pY - app->canvas_y_offset);
+            pod_gpio_display_view_redraw_pressure(app,pressX,pressY - app->canvas_y_offset);
+        }
+        if(timeY > app->canvas_y_offset)//Should you draw time?
+        {
+            pod_gpio_display_view_redraw_time(app,timeX,timeY - app->canvas_y_offset);
+        }
+        if(latY > app->canvas_y_offset)//Should you draw latitude?
+        {
+            pod_gpio_display_view_redraw_latitude(app,latX,latY - app->canvas_y_offset);
+        }
+        if(longY > app->canvas_y_offset)//Should you draw longitude?
+        {
+            pod_gpio_display_view_redraw_longitude(app,longX,longY - app->canvas_y_offset);
+        }
+        if(altY > app->canvas_y_offset)//Should you draw altitude?
+        {
+            pod_gpio_display_view_redraw_altitude(app,altX,altY - app->canvas_y_offset);
+        }
+        if(satY > app->canvas_y_offset)//Should you draw satellites?
+        {
+            pod_gpio_display_view_redraw_satellites(app,satX,satY - app->canvas_y_offset);
         }
     }
     else
@@ -186,7 +311,7 @@ static bool pod_gpio_display_input_callback(InputEvent* input_event, void*contex
         view_dispatcher_send_custom_event(app->view_dispatcher,GPIO_Display_Scroll_Event);
         consumed = true;
     }
-    else if(event.input.type == InputTypeShort && event.input.key == InputKeyDown && app->canvas_y_offset<128){
+    else if(event.input.type == InputTypeShort && event.input.key == InputKeyDown && app->canvas_y_offset<40){
         app->canvas_y_offset+=20;
         view_dispatcher_send_custom_event(app->view_dispatcher,GPIO_Display_Scroll_Event);
         consumed = true;

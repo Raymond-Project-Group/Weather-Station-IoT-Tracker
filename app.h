@@ -3,7 +3,7 @@
 
 #include "flipper.h"
 #include "bme280.h"
-//#include "./flipperzero-gps/gps_uart.h"
+#include "./flipperzero-gps/gps_uart.h"
 typedef enum {
     F,
     C,
@@ -27,12 +27,18 @@ typedef enum {
     Pressure_Count,
 } PressureUnits;
 extern const char* PressureNames[Pressure_Count];// = {"mbar","hPa","PSI","inHg","mmHg","Torr"};
-
+typedef enum{
+    UTC,
+    EST,
+    Time_Count
+} TimeStandards;
+extern const char* TimeNames[Time_Count];
 
 typedef struct{
     TemperatureUnits temperature;
     HumidityUnits humidity;
     PressureUnits pressure;
+    TimeStandards time;
 } AppSettings;
 
 typedef struct {//To view examples of modules: https://brodan.biz/blog/a-visual-guide-to-flipper-zero-gui-components/ 
@@ -46,10 +52,10 @@ typedef struct {//To view examples of modules: https://brodan.biz/blog/a-visual-
     FuriMessageQueue* queue; //Message queue (items to process).
     FuriMutex* mutex; //Used to provide thread safe access to data.
     FuriTimer* timer; //Used for tick callbacks
-    Bme280Context* bme280;
+    Bme280Context* bme280; //BME Module
+    GpsUart* gps_uart; //GPS Module
     Storage* storage;
     Stream* file_stream; // output log stream
-    //GpsUart* gps_uart;
     uint16_t canvas_y_offset; //Used to note how far off the y-axis we are(scroll up and down functionality) 
 } App;
 
