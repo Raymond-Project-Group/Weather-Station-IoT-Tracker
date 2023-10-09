@@ -1,0 +1,6 @@
+[submodule "flipperzero-gps"]
+	path = flipperzero-gps
+	url = https://github.com/ezod/flipperzero-gps.git
+[submodule "minmea"]
+	path = minmea
+	url = https://github.com/kosma/minmea.git

@@ -28,20 +28,31 @@ void pod_settings_change_pressure_units(VariableItem* pressureChoice)//update pr
     app->settings->pressure = index;
 }
 
+void pod_settings_change_time_units(VariableItem* timeChoice)//update time settings
+{
+    App* app = variable_item_get_context(timeChoice);
+    uint8_t index = variable_item_get_current_value_index(timeChoice);
+    variable_item_set_current_value_text(timeChoice, TimeNames[index]);
+    app->settings->time = index;
+}
+
 void pod_settings_scene_on_enter(void* context)
 {
     App* app = context;
     variable_item_list_reset(app->variable_item_list);//Reset variable item list
     
-    VariableItem* t = variable_item_list_add(app->variable_item_list, "Temperature", Temp_Count, pod_settings_change_temp_units, app); //set to temperature
-    variable_item_set_current_value_text(t, TemperatureNames[app->settings->temperature]); //update to reflect current temp choice
+    VariableItem* temp = variable_item_list_add(app->variable_item_list, "Temperature", Temp_Count, pod_settings_change_temp_units, app); //set to temperature
+    variable_item_set_current_value_text(temp, TemperatureNames[app->settings->temperature]); //update to reflect current temp choice
     
-    VariableItem* h = variable_item_list_add(app->variable_item_list, "Humidity", Humid_Count, pod_settings_change_humid_units, app); //set to humidity
-    variable_item_set_current_value_text(h, HumidityNames[app->settings->humidity]); //update to reflect current humidity choice
+    VariableItem* humid = variable_item_list_add(app->variable_item_list, "Humidity", Humid_Count, pod_settings_change_humid_units, app); //set to humidity
+    variable_item_set_current_value_text(humid, HumidityNames[app->settings->humidity]); //update to reflect current humidity choice
     
-    VariableItem* p = variable_item_list_add(app->variable_item_list, "Pressure", Pressure_Count, pod_settings_change_pressure_units, app); //set to pressure
-    variable_item_set_current_value_text(p, PressureNames[app->settings->pressure]); //update to reflect current pressure choice
+    VariableItem* press = variable_item_list_add(app->variable_item_list, "Pressure", Pressure_Count, pod_settings_change_pressure_units, app); //set to pressure
+    variable_item_set_current_value_text(press, PressureNames[app->settings->pressure]); //update to reflect current pressure choice
     
+    VariableItem* time = variable_item_list_add(app->variable_item_list, "Time", Time_Count, pod_settings_change_time_units, app); //set to pressure
+    variable_item_set_current_value_text(time, TimeNames[app->settings->time]); //update to reflect current pressure choice
+
     view_dispatcher_switch_to_view(app->view_dispatcher, Pod_Variable_Item_List_View);
 }
 bool pod_settings_scene_on_event(void* context, SceneManagerEvent event)
