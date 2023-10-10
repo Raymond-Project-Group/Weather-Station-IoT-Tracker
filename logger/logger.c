@@ -37,7 +37,7 @@ void logger_stream_free(Stream* file_stream)
 
 void logger_stream_append(Stream* file_stream, Bme280Data* bme_data, GpsStatus* gps_status)
 {
-    stream_write_format(file_stream, "%f,%f,%f,%f,%f,%04d-%02d-%02d %02d:%02d:%02d\n",
+    stream_write_format(file_stream, "%f,%f,%f,%f,%f,20%02d-%02d-%02d %02d:%02d:%02d\n",
         (double)bme_data->temperature,
         (double)bme_data->humidity,
         (double)bme_data->pressure,
