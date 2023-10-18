@@ -4,6 +4,7 @@
 #include "flipper.h"
 #include "./bme280/bme280.h"
 #include "./flipperzero-gps/gps_uart.h"
+#include "./weather_stations/weather_station.h"
 typedef enum {
     F,
     C,
@@ -54,6 +55,7 @@ typedef struct {//To view examples of modules: https://brodan.biz/blog/a-visual-
     FuriTimer* timer; //Used for tick callbacks
     Bme280Context* bme280; //BME Module
     GpsUart* gps_uart; //GPS Module
+    WeatherStationContext* pws;//Weather Station Module
     Storage* storage;
     Stream* file_stream; // output log stream
     uint16_t canvas_y_offset; //Used to note how far off the y-axis we are(scroll up and down functionality) 

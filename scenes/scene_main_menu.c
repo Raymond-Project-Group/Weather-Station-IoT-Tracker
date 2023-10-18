@@ -13,6 +13,14 @@ void pod_menu_callback(void* context, uint32_t index)
         scene_manager_handle_custom_event(
             app->scene_manager, Pod_Gpio_Display_Selection_Event);
         break;
+    case Pod_Pws_Display_Selection:
+        scene_manager_handle_custom_event(
+            app->scene_manager, Pod_Pws_Display_Selection_Event);
+        break;
+    case Pod_Display_Selection:
+        scene_manager_handle_custom_event(
+            app->scene_manager, Pod_Display_Selection_Event);
+        break;
     case Pod_Settings_Selection:
         scene_manager_handle_custom_event(
             app->scene_manager, Pod_Settings_Selection_Event);
@@ -27,8 +35,8 @@ void pod_main_menu_scene_on_enter(void* context)
     submenu_reset(app->submenu);
     submenu_set_header(app->submenu, "Main Menu");
     submenu_add_item(app->submenu, "GPIO Display", Pod_Gpio_Display_Selection, pod_menu_callback, app);
-    submenu_add_item(app->submenu, "PWS Display", Pod_Settings_Selection, pod_menu_callback, app);
-    submenu_add_item(app->submenu, "Pod Display", Pod_Gpio_Display_Selection, pod_menu_callback, app);
+    submenu_add_item(app->submenu, "PWS Display", Pod_Pws_Display_Selection, pod_menu_callback, app);
+    submenu_add_item(app->submenu, "Pod Display", Pod_Display_Selection, pod_menu_callback, app);
     submenu_add_item(app->submenu, "Settings", Pod_Settings_Selection, pod_menu_callback, app);
     view_dispatcher_switch_to_view(app->view_dispatcher, Pod_Submenu_View);
 }
@@ -43,6 +51,14 @@ bool pod_main_menu_scene_on_event(void* context, SceneManagerEvent event)
         switch(event.event) {
         case Pod_Gpio_Display_Selection_Event:
             scene_manager_next_scene(app->scene_manager, Pod_Gpio_Display_Scene);
+            consumed = true;
+            break;
+        case Pod_Pws_Display_Selection_Event:
+            scene_manager_next_scene(app->scene_manager, Pod_Pws_Display_Scene);
+            consumed = true;
+            break;
+        case Pod_Display_Selection_Event:
+            scene_manager_next_scene(app->scene_manager, Pod_Display_Scene);
             consumed = true;
             break;
         case Pod_Settings_Selection_Event:

@@ -5,12 +5,16 @@
 /** main menu options enum */
 typedef enum {
     Pod_Gpio_Display_Selection,
+    Pod_Pws_Display_Selection,
+    Pod_Display_Selection,
     Pod_Settings_Selection,
 } PodMainMenuSceneIndex;
 
 /** main menu events */
 typedef enum {
     Pod_Gpio_Display_Selection_Event,
+    Pod_Pws_Display_Selection_Event,
+    Pod_Display_Selection_Event,
     Pod_Settings_Selection_Event,
 } PodMainMenuEvent;
 

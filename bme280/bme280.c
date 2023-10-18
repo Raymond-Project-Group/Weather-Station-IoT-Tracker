@@ -87,7 +87,9 @@ static int32_t bme_worker(void* context)
         {
             if(!bme_read_sensors(bme))//if error while reading, stop thread
             {
-                bme_deinit_thread(bme);//no need to break, it will break on next loop
+                bme->data->temperature = 0.0/0.0;
+                bme->data->humidity = 0.0/0.0;
+                bme->data->pressure = 0.0/0.0;
             }
         }
     }
@@ -128,9 +130,9 @@ Bme280Context* bme_init()//init BME
     Bme280Context* bme = malloc(sizeof(Bme280Context));
     Bme280Data* data = malloc(sizeof(Bme280Data));
     bme->address = 0xEC;//Ox76 or 0x77
-    data->temperature = 0xFF;
-    data->humidity = 0xFF;
-    data->pressure = 0xFF;
+    data->temperature = 0.0/0.0;
+    data->humidity = 0.0/0.0;
+    data->pressure = 0.0/0.0;
     data->buffer = furi_string_alloc();
     bme->data = data;
     bme->state = BME_Disabled;
