@@ -2,13 +2,13 @@
 //#include <minmea.h>
 #include "./../minmea/minmea.h"
 #include "gps_uart.h"
-const int gps_baudrates[6] = {4800, 9600, 19200, 38400, 57600, 115200};
+const int gps_baudrates[6] = { 4800, 9600, 19200, 38400, 57600, 115200 };
 int current_gps_baudrate = 1;
 
 static void gps_uart_on_irq_cb(UartIrqEvent ev, uint8_t data, void* context) {
     GpsUart* gps_uart = (GpsUart*)context;
 
-    if(ev == UartIrqEventRXNE) {
+    if (ev == UartIrqEventRXNE) {
         furi_stream_buffer_send(gps_uart->rx_stream, &data, 1, 0);
         furi_thread_flags_set(furi_thread_get_id(gps_uart->thread), GpsUartWorkerEvtRxDone);
     }
@@ -27,10 +27,10 @@ static void gps_uart_serial_deinit(GpsUart* gps_uart) {
 }
 
 static void gps_uart_parse_nmea(GpsUart* gps_uart, char* line) {
-    switch(minmea_sentence_id(line, false)) {
+    switch (minmea_sentence_id(line, false)) {
     case MINMEA_SENTENCE_RMC: {
         struct minmea_sentence_rmc frame;
-        if(minmea_parse_rmc(&frame, line)) {
+        if (minmea_parse_rmc(&frame, line)) {
             gps_uart->status->valid = frame.valid;
             gps_uart->status->latitude = minmea_tocoord(&frame.latitude);
             gps_uart->status->longitude = minmea_tocoord(&frame.longitude);
@@ -39,6 +39,9 @@ static void gps_uart_parse_nmea(GpsUart* gps_uart, char* line) {
             gps_uart->status->time_hours = frame.time.hours;
             gps_uart->status->time_minutes = frame.time.minutes;
             gps_uart->status->time_seconds = frame.time.seconds;
+            gps_uart->status->date_day = frame.date.day;
+            gps_uart->status->date_month = frame.date.month;
+            gps_uart->status->date_year = frame.date.year;
 
             //notification_message_block(gps_uart->notifications, &sequence_blink_green_10);
         }
@@ -46,7 +49,7 @@ static void gps_uart_parse_nmea(GpsUart* gps_uart, char* line) {
 
     case MINMEA_SENTENCE_GGA: {
         struct minmea_sentence_gga frame;
-        if(minmea_parse_gga(&frame, line)) {
+        if (minmea_parse_gga(&frame, line)) {
             gps_uart->status->latitude = minmea_tocoord(&frame.latitude);
             gps_uart->status->longitude = minmea_tocoord(&frame.longitude);
             gps_uart->status->altitude = minmea_tofloat(&frame.altitude);
@@ -63,7 +66,7 @@ static void gps_uart_parse_nmea(GpsUart* gps_uart, char* line) {
 
     case MINMEA_SENTENCE_GLL: {
         struct minmea_sentence_gll frame;
-        if(minmea_parse_gll(&frame, line)) {
+        if (minmea_parse_gll(&frame, line)) {
             gps_uart->status->latitude = minmea_tocoord(&frame.latitude);
             gps_uart->status->longitude = minmea_tocoord(&frame.longitude);
             gps_uart->status->time_hours = frame.time.hours;
@@ -84,16 +87,16 @@ static int32_t gps_uart_worker(void* context) {
 
     size_t rx_offset = 0;
 
-    while(1) {
+    while (1) {
         uint32_t events =
             furi_thread_flags_wait(GPS_UART_WORKER_ALL_RX_EVENTS, FuriFlagWaitAny, FuriWaitForever);
         furi_check((events & FuriFlagError) == 0);
 
-        if(events & GpsUartWorkerEvtStop) {
+        if (events & GpsUartWorkerEvtStop) {
             break;
         }
 
-        if(events & GpsUartWorkerEvtRxDone) {
+        if (events & GpsUartWorkerEvtRxDone) {
             size_t len = 0;
             do {
                 // receive serial bytes into rx_buf, starting at rx_offset from the start of the buffer
@@ -103,23 +106,23 @@ static int32_t gps_uart_worker(void* context) {
                     gps_uart->rx_buf + rx_offset,
                     RX_BUF_SIZE - 1 - rx_offset,
                     0);
-                if(len > 0) {
+                if (len > 0) {
                     // increase rx_offset by the number of bytes received, and null-terminate rx_buf
                     rx_offset += len;
                     gps_uart->rx_buf[rx_offset] = '\0';
 
                     // look for strings ending in newlines, starting at the start of rx_buf
                     char* line_current = (char*)gps_uart->rx_buf;
-                    while(1) {
+                    while (1) {
                         // skip null characters
-                        while(*line_current == '\0' &&
-                              line_current < (char*)gps_uart->rx_buf + rx_offset - 1) {
+                        while (*line_current == '\0' &&
+                            line_current < (char*)gps_uart->rx_buf + rx_offset - 1) {
                             line_current++;
                         }
 
                         // find the next newline
                         char* newline = strchr(line_current, '\n');
-                        if(newline) // newline found
+                        if (newline) // newline found
                         {
                             // put a null terminator in place of the newline, to delimit the line string
                             *newline = '\0';
@@ -129,14 +132,15 @@ static int32_t gps_uart_worker(void* context) {
 
                             // move the cursor to the character after the newline
                             line_current = newline + 1;
-                        } else // no more newlines found
+                        }
+                        else // no more newlines found
                         {
-                            if(line_current >
-                               (char*)gps_uart->rx_buf) // at least one line was found
+                            if (line_current >
+                                (char*)gps_uart->rx_buf) // at least one line was found
                             {
                                 // clear parsed lines, and move any leftover bytes to the start of rx_buf
                                 rx_offset = 0;
-                                while(
+                                while (
                                     *line_current) // stop when the original rx_offset terminator is reached
                                 {
                                     gps_uart->rx_buf[rx_offset++] = *(line_current++);
@@ -146,7 +150,7 @@ static int32_t gps_uart_worker(void* context) {
                         }
                     }
                 }
-            } while(len > 0);
+            } while (len > 0);
         }
     }
 
@@ -170,6 +174,9 @@ void gps_uart_init_thread(GpsUart* gps_uart) {
     gps_uart->status->time_hours = 0;
     gps_uart->status->time_minutes = 0;
     gps_uart->status->time_seconds = 0;
+    gps_uart->status->date_day = 0;
+    gps_uart->status->date_month = 0;
+    gps_uart->status->date_year = 0;
 
     gps_uart->rx_stream = furi_stream_buffer_alloc(RX_BUF_SIZE * 5, 1);
 
