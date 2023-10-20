@@ -133,6 +133,7 @@ void pod_pws_display_scene_on_enter(void* context)
     widget_reset(app->widget);
     app->canvas_y_offset = 0;
     app->pws = ws_init();
+    app->weather_station_initialized = true;
     //FuriString* str_buff;
     //str_buff = furi_string_alloc();
 
@@ -160,8 +161,6 @@ void pod_pws_display_scene_on_enter(void* context)
         ws_rx(app->pws, app->pws->txrx->preset->frequency);
     }
 
-
-    app->mutex = furi_mutex_alloc(FuriMutexTypeNormal);
 
     //Queue for events(Ticks or input)
     app->queue = furi_message_queue_alloc(8,sizeof(PwsDisplayEvent));
@@ -225,9 +224,7 @@ bool pod_pws_display_scene_on_event(void* context, SceneManagerEvent event)
                     break;
                 case PWS_Display_Log_Event:
                     FURI_LOG_I(TAG, "Log Event");
-                    furi_mutex_acquire(app->mutex, FuriWaitForever);
-                    //logger_stream_append(app->file_stream, app->bme280->data); // Add new log line using current data
-                    furi_mutex_release(app->mutex);
+                    logger_stream_append(app); // Add new log line using current data
                     consumed = false;
                     break;
             }
@@ -243,8 +240,8 @@ void pod_pws_display_scene_on_exit(void* context)
     FURI_LOG_I(TAG, "Exiting PWS Display Scene");
     App* app = context;
     ws_free(app->pws);
+    app->weather_station_initialized = false;
     furi_message_queue_free(app->queue);
-    furi_mutex_free(app->mutex);
     furi_timer_free(app->timer);
     widget_reset(app->widget);
 }

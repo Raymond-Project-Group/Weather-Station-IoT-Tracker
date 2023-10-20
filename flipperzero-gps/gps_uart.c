@@ -163,20 +163,20 @@ static int32_t gps_uart_worker(void* context) {
 void gps_uart_init_thread(GpsUart* gps_uart) {
     furi_assert(gps_uart);
     gps_uart->status->valid = false;
-    gps_uart->status->latitude = 0.0;
-    gps_uart->status->longitude = 0.0;
+    gps_uart->status->latitude = 0.0/0.0;
+    gps_uart->status->longitude = 0.0/0.0;
     gps_uart->status->speed = 0.0;
     gps_uart->status->course = 0.0;
     gps_uart->status->altitude = 0.0;
     gps_uart->status->altitude_units = ' ';
     gps_uart->status->fix_quality = 0;
     gps_uart->status->satellites_tracked = 0;
-    gps_uart->status->time_hours = 0;
-    gps_uart->status->time_minutes = 0;
-    gps_uart->status->time_seconds = 0;
-    gps_uart->status->date_day = 0;
-    gps_uart->status->date_month = 0;
-    gps_uart->status->date_year = 0;
+    gps_uart->status->time_hours = -1;
+    gps_uart->status->time_minutes = -1;
+    gps_uart->status->time_seconds = -1;
+    gps_uart->status->date_day = -1;
+    gps_uart->status->date_month = -1;
+    gps_uart->status->date_year = -1;
 
     gps_uart->rx_stream = furi_stream_buffer_alloc(RX_BUF_SIZE * 5, 1);
 
@@ -206,6 +206,8 @@ GpsUart* gps_uart_enable() {
     gps_uart->baudrate = gps_baudrates[current_gps_baudrate];
     gps_uart->status = malloc(sizeof(GpsStatus));
     gps_uart_init_thread(gps_uart);
+
+    FURI_LOG_I("KMS", "It gets through enable");
 
     return gps_uart;
 }

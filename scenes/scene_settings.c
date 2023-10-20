@@ -1,5 +1,6 @@
 #include "../flipper.h"
 #include "../app.h"
+#include "../pod.h"
 #include "scenes.h"
 #include "scene_settings.h"
 
@@ -38,6 +39,7 @@ void pod_settings_change_time_units(VariableItem* timeChoice)//update time setti
 
 void pod_settings_scene_on_enter(void* context)
 {
+    FURI_LOG_I(TAG, "Settings Scene entered");
     App* app = context;
     variable_item_list_reset(app->variable_item_list);//Reset variable item list
     

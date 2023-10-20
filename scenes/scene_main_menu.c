@@ -50,6 +50,7 @@ bool pod_main_menu_scene_on_event(void* context, SceneManagerEvent event)
     case SceneManagerEventTypeCustom:
         switch(event.event) {
         case Pod_Gpio_Display_Selection_Event:
+            FURI_LOG_I("PODS", "Entering GPIO Display Scene");
             scene_manager_next_scene(app->scene_manager, Pod_Gpio_Display_Scene);
             consumed = true;
             break;

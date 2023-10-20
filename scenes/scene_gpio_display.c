@@ -26,8 +26,10 @@ void pod_gpio_display_view_redraw_widget(App* app)
     if (app->bme280->state == BME_Disabled)//If initialization failed
     {
         FURI_LOG_I(TAG, "BME disabled");
+        //furi_mutex_acquire(app->mutex, FuriWaitForever);
         bme_free(app->bme280);//free
         app->bme280 = bme_init();//reattempt initialization
+        //furi_mutex_release(app->mutex);
     }
 
     if (app->bme280->state == BME_Active)//If init is working
@@ -139,7 +141,6 @@ void pod_gpio_display_scene_on_enter(void* context)
     widget_reset(app->widget);
     app->canvas_y_offset = 0;
     //app->bme280 = bme_init();
-    app->mutex = furi_mutex_alloc(FuriMutexTypeNormal);
 
     //Queue for events(Ticks or input)
     app->queue = furi_message_queue_alloc(8, sizeof(GpioDisplayEvent));
@@ -203,9 +204,7 @@ bool pod_gpio_display_scene_on_event(void* context, SceneManagerEvent event)
             break;
         case GPIO_Display_Log_Event:
             FURI_LOG_I(TAG, "Log Event");
-            furi_mutex_acquire(app->mutex, FuriWaitForever);
-            logger_stream_append(app->file_stream, app->bme280->data, app->gps_uart->status); // Add new log line using current data
-            furi_mutex_release(app->mutex);
+            logger_stream_append(app); // Add new log line using current data
             consumed = false;
             break;
         }
@@ -221,7 +220,6 @@ void pod_gpio_display_scene_on_exit(void* context)
     FURI_LOG_I(TAG, "Exiting GPIO Display Scene");
     App* app = context;
     furi_message_queue_free(app->queue);
-    furi_mutex_free(app->mutex);
     furi_timer_free(app->timer);
     widget_reset(app->widget);
 }
