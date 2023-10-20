@@ -42,7 +42,7 @@ void logger_stream_append(App* app) {
     stream_write_char(app->file_stream, ',');
     append_gps_log(app->file_stream, app->gps_uart->status);
     stream_write_char(app->file_stream, ',');
-    append_ws_log(app->file_stream, app->pws->data->generic, !app->weather_station_initialized);
+    append_ws_log(app->file_stream, app->pws, !app->weather_station_initialized);
     stream_write_char(app->file_stream, '\n');
     furi_mutex_release(app->mutex);
 }
@@ -86,16 +86,16 @@ void append_gps_log(Stream* file_stream, GpsStatus* gps_status) {
     stream_write_format(file_stream, "%d", gps_status->satellites_tracked);
 }
 
-void append_ws_log(Stream* file_stream, WSBlockGeneric* ws_data, bool override) {
+void append_ws_log(Stream* file_stream, WeatherStationContext* ws, bool override) {
 
     // prevents accessing junk data
     if(override) {
         stream_write_cstring(file_stream, ",,,,");
         return;
     }
-
+    WSBlockGeneric* ws_data = ws->data->generic;
     stream_write_cstring(file_stream, "override not set, going to attempt write");
 
-    stream_write_format(file_stream, "%f, %f, %ld, %s, %ld", (double) ws_data->temp, (double) ws_data->humidity, ws_data->timestamp, ws_data->protocol_name, ws_data->id);
+    stream_write_format(file_stream, "%f, %f, %ld, %s, %ld", (double) ws_data->temp, (double) ws_data->humidity, ws_data->timestamp, furi_string_get_cstr(ws->data->protocol_name), ws_data->id);
 
 }

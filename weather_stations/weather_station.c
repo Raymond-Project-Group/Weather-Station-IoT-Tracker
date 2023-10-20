@@ -32,13 +32,18 @@ static void ws_subghz_general_callback(SubGhzReceiver* receiver,SubGhzProtocolDe
         FURI_LOG_I(TAG,"Added to History");
         ws->txrx->history_size ++;
         ws->txrx->rx_key_state = WSRxKeyStateAddKey;
-        ws_block_generic_deserialize(ws->data->generic ,ws_history_get_raw_data(ws->txrx->history,ws->txrx->idx_menu_chosen));//updates data i think?
+        
+        FlipperFormat* fff = ws_history_get_raw_data(ws->txrx->history,ws->txrx->idx_menu_chosen);//Gets Flipper Format and Raw Data
+        flipper_format_rewind(fff);
+        flipper_format_read_string(fff, "Protocol", ws->data->protocol_name);//gets protocol name
+        
+        ws_block_generic_deserialize(ws->data->generic , fff);//updates data i think?
     }
     else if(ws_hist == WSHistoryStateAddKeyUpdateData)//old one
     {
         FURI_LOG_I(TAG,"Updated Records");
         ws_block_generic_deserialize(ws->data->generic ,ws_history_get_raw_data(ws->txrx->history,ws->txrx->idx_menu_chosen));//updates data i think?
-}
+    }
 
     subghz_receiver_reset(receiver);
 }

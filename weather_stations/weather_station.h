@@ -11,6 +11,7 @@
 #include <lib/subghz/receiver.h>
 #include <lib/subghz/transmitter.h>
 #include <lib/subghz/registry.h>
+#include <lib/flipper_format/flipper_format.h>
 
 typedef enum {
     WsWorkerEvtStop = (1 << 0),
