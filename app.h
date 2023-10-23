@@ -32,11 +32,15 @@ extern const char* PressureNames[Pressure_Count]; // = {"mbar","hPa","PSI","inHg
 typedef enum { UTC, EST, Time_Count } TimeStandards;
 extern const char* TimeNames[Time_Count];
 
+typedef enum { pws_sync, manual_only, Log_Mode_Count,} LogModes;
+extern const char* LogModeNames[Log_Mode_Count];
+
 typedef struct {
     TemperatureUnits temperature;
     HumidityUnits humidity;
     PressureUnits pressure;
     TimeStandards time;
+    LogModes logMode;
 } AppSettings;
 
 typedef struct { //To view examples of modules: https://brodan.biz/blog/a-visual-guide-to-flipper-zero-gui-components/

@@ -94,7 +94,6 @@ void append_ws_log(Stream* file_stream, WeatherStationContext* ws, bool override
         return;
     }
     WSBlockGeneric* ws_data = ws->data->generic;
-    stream_write_cstring(file_stream, "override not set, going to attempt write");
 
     stream_write_format(file_stream, "%f, %f, %ld, %s, %ld", (double) ws_data->temp, (double) ws_data->humidity, ws_data->timestamp, furi_string_get_cstr(ws->data->protocol_name), ws_data->id);
 

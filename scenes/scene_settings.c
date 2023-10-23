@@ -37,6 +37,13 @@ void pod_settings_change_time_units(VariableItem* timeChoice)//update time setti
     app->settings->time = index;
 }
 
+void pod_settings_change_log_mode(VariableItem* logChoice) {
+    App* app = variable_item_get_context(logChoice);
+    uint8_t index = variable_item_get_current_value_index(logChoice);
+    variable_item_set_current_value_text(logChoice, LogModeNames[index]);
+    app->settings->logMode = index;
+}
+
 void pod_settings_scene_on_enter(void* context)
 {
     FURI_LOG_I(TAG, "Settings Scene entered");
@@ -54,6 +61,9 @@ void pod_settings_scene_on_enter(void* context)
     
     VariableItem* time = variable_item_list_add(app->variable_item_list, "Time", Time_Count, pod_settings_change_time_units, app); //set to pressure
     variable_item_set_current_value_text(time, TimeNames[app->settings->time]); //update to reflect current pressure choice
+
+    VariableItem* log = variable_item_list_add(app->variable_item_list, "Log Mode", Log_Mode_Count, pod_settings_change_log_mode, app);
+    variable_item_set_current_value_text(log, LogModeNames[app->settings->logMode]);
 
     view_dispatcher_switch_to_view(app->view_dispatcher, Pod_Variable_Item_List_View);
 }
