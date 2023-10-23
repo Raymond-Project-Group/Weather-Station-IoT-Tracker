@@ -47,6 +47,15 @@ void logger_stream_append(App* app) {
     furi_mutex_release(app->mutex);
 }
 
+void logger_auto_append(void* context) {
+    furi_assert(context);
+    App* app = (App*) context;
+    if (app->settings->logMode == manual_only)
+        return;
+
+    logger_stream_append(app);
+}
+
 void append_bme_log(Stream* file_stream, Bme280Data* bme_data) {
 
     stream_write_format(

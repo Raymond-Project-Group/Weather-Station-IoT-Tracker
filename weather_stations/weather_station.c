@@ -1,5 +1,7 @@
 #include "weather_station.h"
 #include "../pod.h"
+#include "../logger/logger.h"
+
 static int32_t ws_worker(void* context)
 {
     WeatherStationContext* ws = (WeatherStationContext*) context;
@@ -37,12 +39,16 @@ static void ws_subghz_general_callback(SubGhzReceiver* receiver,SubGhzProtocolDe
         flipper_format_rewind(fff);
         flipper_format_read_string(fff, "Protocol", ws->data->protocol_name);//gets protocol name
         
-        ws_block_generic_deserialize(ws->data->generic , fff);//updates data i think?
+        if(ws_block_generic_deserialize(ws->data->generic , fff) == SubGhzProtocolStatusOk) { //updates data i think?
+            logger_auto_append(ws->parentApp);
+        } 
     }
     else if(ws_hist == WSHistoryStateAddKeyUpdateData)//old one
     {
         FURI_LOG_I(TAG,"Updated Records");
-        ws_block_generic_deserialize(ws->data->generic ,ws_history_get_raw_data(ws->txrx->history,ws->txrx->idx_menu_chosen));//updates data i think?
+        if(ws_block_generic_deserialize(ws->data->generic ,ws_history_get_raw_data(ws->txrx->history,ws->txrx->idx_menu_chosen)) == SubGhzProtocolStatusOk) {
+            logger_auto_append(ws->parentApp);
+        } 
     }
 
     subghz_receiver_reset(receiver);
@@ -152,9 +158,11 @@ void ws_sleep(WeatherStationContext* ws)
     ws->txrx->txrx_state = WSTxRxStateSleep;
 }
 
-WeatherStationContext* ws_init()
+WeatherStationContext* ws_init(void* app)
 {
     WeatherStationContext* ws = malloc(sizeof(WeatherStationContext));
+
+    ws->parentApp = app;
 
     //init setting
     ws->setting = subghz_setting_alloc();

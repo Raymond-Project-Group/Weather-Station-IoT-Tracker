@@ -132,7 +132,7 @@ void pod_pws_display_scene_on_enter(void* context)
 
     widget_reset(app->widget);
     app->canvas_y_offset = 0;
-    app->pws = ws_init();
+    app->pws = ws_init(app);
     app->weather_station_initialized = true;
     //FuriString* str_buff;
     //str_buff = furi_string_alloc();
