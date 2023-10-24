@@ -5,6 +5,7 @@
 #include "../pod.h"
 #include "../logger/logger.h"
 #include "../unit_conversion/unit_conversion.h"
+#include "scene_widgets.h"
 
 #include <applications/services/gui/modules/widget.h>
 #include <applications/services/gui/modules/widget_elements/widget_element.h>
@@ -45,6 +46,9 @@ void pod_display_view_redraw_time(App* app, uint8_t tX, uint8_t tY) //Draw Time
     length = snprintf(NULL, 0, "%02d:%02d:%02d", hours, data->time_minutes, data->time_seconds) +
              1; //finds num of digits in time
     char t[length]; //creates string for time
+    if (data->time_seconds < 0) { // checks for illegal time
+        strcpy(t, "xx:xx:xx");
+    } else {
     snprintf(
         t,
         length,
@@ -52,6 +56,7 @@ void pod_display_view_redraw_time(App* app, uint8_t tX, uint8_t tY) //Draw Time
         hours,
         data->time_minutes,
         data->time_seconds); //stores time in string
+    }
     widget_add_string_element(
         app->widget, tX + 14, tY + 13, AlignLeft, AlignBottom, FontPrimary, t);
 }
@@ -161,18 +166,18 @@ void pod_display_view_redraw_temperature(App* app, uint8_t tX, uint8_t tY) //Dra
         0); //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
     //Temperature, Humidity, and Pressure Units can change off settings
     Icon* temperatureUnitWidget; //Temperature's units is the only one included in the icon symbol
-    float temp = data->temperature;
+    float tempGPIO = data->temperature;
     switch(app->settings->temperature) {
     case F:
         temperatureUnitWidget = (Icon*)&I_temp_F_11x14;
-        temp = temperature_conversion(C, F, temp);
+        tempGPIO = temperature_conversion(C, F, tempGPIO);
         break;
     case C:
         temperatureUnitWidget = (Icon*)&I_temp_C_11x14;
         break;
     case K:
         temperatureUnitWidget = (Icon*)&I_temp_K_11x14;
-        temp = temperature_conversion(C, K, temp);
+        tempGPIO = temperature_conversion(C, K, tempGPIO);
         break;
     default:
         FURI_LOG_E(TAG, "Unrecognised temperature type in pod_display_view_redraw_widget");
@@ -180,9 +185,9 @@ void pod_display_view_redraw_temperature(App* app, uint8_t tX, uint8_t tY) //Dra
         return;
     }
     widget_add_icon_element(app->widget, tX + 2, tY + 3, temperatureUnitWidget);
-    length = snprintf(NULL, 0, "%6.2f", (double)temp) + 1; //finds num of digits in temperature
+    length = snprintf(NULL, 0, "%6.2f", (double)tempGPIO) + 1; //finds num of digits in temperature
     char t[length]; //creates string for temp
-    snprintf(t, length, "%6.2f", (double)temp); //stores temp in string
+    snprintf(t, length, "%6.2f", (double)tempGPIO); //stores temp in string
     widget_add_string_element(
         app->widget, tX + 14, tY + 13, AlignLeft, AlignBottom, FontPrimary, t);
 }
@@ -279,11 +284,11 @@ void pod_display_view_redraw_widget(App* app) {
         64,
         0); //Flipper screen size is 128x64, this draws a border around it
     widget_add_frame_element(app->widget, 126, app->canvas_y_offset + 2, 2, 20, 0); //Scroll Bar
-    /*if(app->canvas_y_offset == 0)//Banner
+    if(app->canvas_y_offset == 0)//Banner
     {
-        Icon* podBanner = (Icon*)&I_display_banner_90x15;
+        Icon* podBanner = (Icon*)&I_pod_display_banner_top_90x15;
         widget_add_icon_element(app->widget,18,5,podBanner);
-    }*/
+    }
     if(app->bme280->state == BME_Disabled) //If initialization failed
     {
         FURI_LOG_I(TAG, "BME disabled");
@@ -291,59 +296,63 @@ void pod_display_view_redraw_widget(App* app) {
         app->bme280 = bme_init(); //reattempt initialization
     }
 
-    if(app->bme280->state == BME_Active) //If init is working
+    if(app->bme280->state == BME_Active && app->pws->txrx->history_size > 0) //If init is working
     {
-        FURI_LOG_I(TAG, "BME active");
+        FURI_LOG_I(TAG, "BME active and Weather Stations active");
 
         //Build the canvas
-        uint8_t tempX = 2;
-        uint8_t tempY = 23;
-        uint8_t humX = 64;
-        uint8_t humY = 23;
+        uint8_t tempCombinedX = 2;
+        uint8_t tempCombinedY = 23;
+        uint8_t humCombinedX = 2;
+        uint8_t humCombinedY = 43;
         uint8_t pressX = 2;
-        uint8_t pressY = 43;
-        uint8_t timeX = 64;
-        uint8_t timeY = 43;
+        uint8_t pressY = 63;
+        uint8_t timerX = 64;
+        uint8_t timerY = 63;
         uint8_t latX = 2;
-        uint8_t latY = 63;
+        uint8_t latY = 83;
         uint8_t longX = 64;
-        uint8_t longY = 63;
-        uint8_t altX = 2;
-        uint8_t altY = 83;
+        uint8_t longY = 83;
+        uint8_t timeX = 2;
+        uint8_t timeY = 103;
         uint8_t satX = 64;
-        uint8_t satY = 83;
+        uint8_t satY = 103;
 
-        if(tempY > app->canvas_y_offset) //Should you draw temp?
+        if(tempCombinedY > app->canvas_y_offset) //Should you draw temp?
         {
-            pod_display_view_redraw_temperature(app, tempX, tempY - app->canvas_y_offset);
+            pod_widgets_redraw_temperature(app, tempCombinedX, tempCombinedY - app->canvas_y_offset, Pod_Display_Scene);
         }
-        if(humY > app->canvas_y_offset) //Should you draw humidity?
+        if(humCombinedY > app->canvas_y_offset) //Should you draw humidity?
         {
-            pod_display_view_redraw_humidity(app, humX, humY - app->canvas_y_offset);
+            pod_widgets_redraw_humidity(app, humCombinedX, humCombinedY - app->canvas_y_offset, Pod_Display_Scene);
         }
-        if(pressY > app->canvas_y_offset) //Should you draw pressure?
+        if(pressY > app->canvas_y_offset) // should you draw pressure?
         {
-            pod_display_view_redraw_pressure(app, pressX, pressY - app->canvas_y_offset);
+            pod_widgets_redraw_pressure(app, pressX, pressY - app->canvas_y_offset);
+        }
+        if(timerY > app->canvas_y_offset) // should you draw timer?
+        {
+            pod_widgets_redraw_timer(app, timerX, timerY - app->canvas_y_offset);
         }
         if(timeY > app->canvas_y_offset) //Should you draw time?
         {
-            pod_display_view_redraw_time(app, timeX, timeY - app->canvas_y_offset);
+            pod_widgets_redraw_time(app, timeX, timeY - app->canvas_y_offset);
         }
         if(latY > app->canvas_y_offset) //Should you draw latitude?
         {
-            pod_display_view_redraw_latitude(app, latX, latY - app->canvas_y_offset);
+            pod_widgets_redraw_latitude(app, latX, latY - app->canvas_y_offset);
         }
         if(longY > app->canvas_y_offset) //Should you draw longitude?
         {
-            pod_display_view_redraw_longitude(app, longX, longY - app->canvas_y_offset);
+            pod_widgets_redraw_longitude(app, longX, longY - app->canvas_y_offset);
         }
-        if(altY > app->canvas_y_offset) //Should you draw altitude?
+        /*if(altY > app->canvas_y_offset) //Should you draw altitude?
         {
-            pod_display_view_redraw_altitude(app, altX, altY - app->canvas_y_offset);
-        }
+            pod_widgets_redraw_altitude(app, altX, altY - app->canvas_y_offset);
+        }*/
         if(satY > app->canvas_y_offset) //Should you draw satellites?
         {
-            pod_display_view_redraw_satellites(app, satX, satY - app->canvas_y_offset);
+            pod_widgets_redraw_satellites(app, satX, satY - app->canvas_y_offset);
         }
     } else {
         widget_add_string_element(
@@ -353,7 +362,7 @@ void pod_display_view_redraw_widget(App* app) {
             AlignLeft,
             AlignBottom,
             FontPrimary,
-            "Flipper Failed to Connect to BME280");
+            "Flipper Failed to Connect to BME280 or PWS");
     }
 }
 static bool pod_display_input_callback(
@@ -375,7 +384,7 @@ static bool pod_display_input_callback(
         consumed = true;
     } else if(
         event.input.type == InputTypeShort && event.input.key == InputKeyDown &&
-        app->canvas_y_offset < 40) {
+        app->canvas_y_offset < 60) {
         app->canvas_y_offset += 20;
         view_dispatcher_send_custom_event(app->view_dispatcher, POD_Display_Scroll_Event);
         consumed = true;
@@ -406,7 +415,22 @@ void pod_display_scene_on_enter(void* context) {
 
     widget_reset(app->widget);
     app->canvas_y_offset = 0;
-    //app->bme280 = bme_init();
+    app->pws = ws_init(app);
+    app->weather_station_initialized = true;
+
+    if(app->pws->txrx->rx_key_state == WSRxKeyStateIDLE) {
+        ws_preset_init(app->pws, "AM650", subghz_setting_get_default_frequency(app->pws->setting), NULL, 0);
+        ws_history_reset(app->pws->txrx->history);
+        app->pws->txrx->rx_key_state = WSRxKeyStateStart;
+    }
+    if(app->pws->txrx->txrx_state == WSTxRxStateRx) {
+        ws_rx_end(app->pws);
+    }
+
+    if((app->pws->txrx->txrx_state == WSTxRxStateIDLE) || (app->pws->txrx->txrx_state == WSTxRxStateSleep)) {
+        ws_begin(app->pws,subghz_setting_get_preset_data_by_name(app->pws->setting, furi_string_get_cstr(app->pws->txrx->preset->name)));
+        ws_rx(app->pws, app->pws->txrx->preset->frequency);
+    }
 
     //Queue for events(Ticks or input)
     app->queue = furi_message_queue_alloc(8, sizeof(PodDisplayEvent));
@@ -482,6 +506,8 @@ bool pod_display_scene_on_event(void* context, SceneManagerEvent event) {
 void pod_display_scene_on_exit(void* context) {
     FURI_LOG_I(TAG, "Exiting POD POD_Display Scene");
     App* app = context;
+    ws_free(app->pws);
+    app->weather_station_initialized = false;
     furi_message_queue_free(app->queue);
     furi_timer_free(app->timer);
     widget_reset(app->widget);

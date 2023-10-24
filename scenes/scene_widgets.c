@@ -53,7 +53,17 @@ void pod_widgets_redraw_time(App* app,uint8_t tX, uint8_t tY) //Draw Time
     widget_add_icon_element(app->widget, tX+2, tY+3, timeWidgetUnits);
     length = snprintf(NULL,0,"%02d:%02d:%02d",hours,data->time_minutes,data->time_seconds)+1;//finds num of digits in time
     char t[length];//creates string for time
-    snprintf(t,length,"%02d:%02d:%02d",hours,data->time_minutes,data->time_seconds);//stores time in string
+    if (data->time_seconds < 0) { // checks for illegal time
+        strcpy(t, "xx:xx:xx");
+    } else {
+    snprintf(
+        t,
+        length,
+        "%02d:%02d:%02d",
+        hours,
+        data->time_minutes,
+        data->time_seconds); //stores time in string
+    }
     widget_add_string_element(app->widget,tX+14,tY+13,AlignLeft,AlignBottom,FontPrimary,t);
 }
 
@@ -158,6 +168,51 @@ void pod_widgets_redraw_temperature(App* app,uint8_t tX, uint8_t tY, int page) /
         snprintf(t,length,"%6.2f",(double)temp);//stores temp in string
         widget_add_string_element(app->widget,tX+14,tY+13,AlignLeft,AlignBottom,FontPrimary,t);
     }
+    else {
+
+        float tempGPIO = 0.0/0.0;
+        float tempPWS = 0.0/0.0;
+
+        Bme280Data* dataGPIO = app->bme280->data;
+        tempGPIO = dataGPIO->temperature;
+        WSBlockGeneric* dataPWS = app->pws->data->generic;
+        tempPWS = dataPWS->temp;
+
+        widget_add_frame_element(app->widget,tX,tY,123,19,0);  //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
+        //Temperature, Humidity, and Pressure Units can change off settings
+        Icon* temperatureUnitWidget;//Temperature's units is the only one included in the icon symbol
+        switch(app->settings->temperature)
+        {
+            case F:
+                temperatureUnitWidget = (Icon*)&I_temp_F_11x14;
+                tempGPIO = temperature_conversion(C,F,tempGPIO);
+                tempPWS = temperature_conversion(C,F,tempPWS);
+                break;
+            case C:
+                temperatureUnitWidget = (Icon*)&I_temp_C_11x14;
+                break;
+            case K:
+                temperatureUnitWidget = (Icon*)&I_temp_K_11x14;
+                tempGPIO = temperature_conversion(C,K,tempGPIO);
+                tempPWS = temperature_conversion(C,K,tempPWS);
+                break;
+            default:
+                FURI_LOG_E(TAG, "Unrecognised temperature type in pod_widgets_redraw_widget");
+                app_quit(app);
+                return;
+        }
+        length = snprintf(NULL,0,"%6.2f",(double)tempGPIO)+1;//finds num of digits in temperature
+        char tLeft[length];//creates string for temp
+        snprintf(tLeft,length,"%6.2f",(double)tempGPIO);//stores temp in string
+        widget_add_string_element(app->widget,tX+2,tY+13,AlignLeft,AlignBottom,FontPrimary,tLeft);
+
+        widget_add_icon_element(app->widget, tX+56, tY+3, temperatureUnitWidget);
+
+        length = snprintf(NULL,0,"%6.2f",(double)tempPWS)+1;//finds num of digits in temperature
+        char tRight[length];//creates string for temp
+        snprintf(tRight,length,"%6.2f",(double)tempPWS);//stores temp in string
+        widget_add_string_element(app->widget,tX+121,tY+13,AlignRight,AlignBottom,FontPrimary,tRight);
+    }
 }
 
 void pod_widgets_redraw_humidity(App* app,uint8_t hX, uint8_t hY,int page) //Draw Humidity
@@ -205,6 +260,53 @@ void pod_widgets_redraw_humidity(App* app,uint8_t hX, uint8_t hY,int page) //Dra
         char h[length];//creates string for humidity
         snprintf(h,length,"%6.2f",(double)humid);//stores humidity in string
         widget_add_string_element(app->widget,hX+11,hY+13,AlignLeft,AlignBottom,FontPrimary,h);
+    }
+    else {
+
+        float humidGPIO = 0.0/0.0;
+        float humidPWS = 0.0/0.0;
+        float tempGPIO = 0.0/0.0;
+        float tempPWS = 0.0/0.0;
+
+        Bme280Data* dataGPIO = app->bme280->data;
+        humidGPIO = dataGPIO->humidity;
+        tempGPIO = dataGPIO->temperature;
+        WSBlockGeneric* dataPWS = app->pws->data->generic;
+        humidPWS = dataPWS->humidity*1.0;
+        tempPWS = dataPWS->temp;
+
+        widget_add_frame_element(app->widget,hX,hY,123,19,0);  
+        //Humidity Icon and Pressure Icon are static, units then get put to the right
+        Icon* humidityWidget = (Icon*)&I_hum_9x15;
+        widget_add_icon_element(app->widget,hX+57,hY+2,humidityWidget);
+        //Temperature, Humidity, and Pressure Units can change off settings
+        Icon* humidityUnitWidget;
+        switch(app->settings->humidity)
+        {
+            case relative:
+                humidityUnitWidget = (Icon*)&I_percent_11x15;
+                break;
+            case absolute:
+                humidityUnitWidget = (Icon*)&I_g_m3_11x15;
+                humidGPIO = humidity_conversion(relative,C,absolute,humidGPIO,tempGPIO);
+                humidPWS = humidity_conversion(relative,C,absolute,humidPWS,tempPWS);
+                break;
+            default:
+                FURI_LOG_E(TAG, "Unrecognised humidity type in pod_widgets_redraw_widget");
+                app_quit(app);
+                return;
+        }
+        widget_add_icon_element(app->widget,hX+40,hY+2,humidityUnitWidget);
+        length = snprintf(NULL,0,"%6.2f",(double)humidGPIO)+1;//finds num of digits in humidity
+        char h[length];//creates string for humidity
+        snprintf(h,length,"%6.2f",(double)humidGPIO);//stores humidity in string
+        widget_add_string_element(app->widget,hX+2,hY+13,AlignLeft,AlignBottom,FontPrimary,h);
+
+        widget_add_icon_element(app->widget,hX+110,hY+2,humidityUnitWidget);
+        length = snprintf(NULL,0,"%6.2f",(double)humidPWS)+1;//finds num of digits in humidity
+        char hRight[length];//creates string for humidity
+        snprintf(hRight,length,"%6.2f",(double)humidPWS);//stores humidity in string
+        widget_add_string_element(app->widget,hX+108,hY+13,AlignRight,AlignBottom,FontPrimary,hRight);
     }
 }
 
