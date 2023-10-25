@@ -43,6 +43,8 @@ App* app_alloc() { //allocate and initialize app.  add required views and scenes
 
     app->weather_station_initialized = false;
 
+    app->deltaState = POD_Neutral_Delta;
+
     app->mutex = furi_mutex_alloc(FuriMutexTypeNormal);
 
     return app;

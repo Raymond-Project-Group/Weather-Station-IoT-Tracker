@@ -125,7 +125,7 @@ void pod_widgets_redraw_satellites(App* app,uint8_t sX, uint8_t sY) //Draw Satel
     widget_add_string_element(app->widget,sX+20,sY+13,AlignLeft,AlignBottom,FontPrimary,t);
 }
 
-void pod_widgets_redraw_temperature(App* app,uint8_t tX, uint8_t tY, int page) //Draw Temperature
+void pod_widgets_redraw_temperature(App* app,uint8_t tX, uint8_t tY, int page, PodDeltaState deltaState) //Draw Temperature
 {
     int length;
     if(page != Pod_Display_Scene)
@@ -201,6 +201,17 @@ void pod_widgets_redraw_temperature(App* app,uint8_t tX, uint8_t tY, int page) /
                 app_quit(app);
                 return;
         }
+        switch (deltaState) {
+            case POD_Left_Side_Delta:
+                tempGPIO = tempGPIO - tempPWS;
+                break;
+            case POD_Right_Side_Delta:
+                tempPWS = tempGPIO - tempPWS;
+                break;
+            default:
+                break;
+        }
+        
         length = snprintf(NULL,0,"%6.2f",(double)tempGPIO)+1;//finds num of digits in temperature
         char tLeft[length];//creates string for temp
         snprintf(tLeft,length,"%6.2f",(double)tempGPIO);//stores temp in string
@@ -215,7 +226,7 @@ void pod_widgets_redraw_temperature(App* app,uint8_t tX, uint8_t tY, int page) /
     }
 }
 
-void pod_widgets_redraw_humidity(App* app,uint8_t hX, uint8_t hY,int page) //Draw Humidity
+void pod_widgets_redraw_humidity(App* app,uint8_t hX, uint8_t hY,int page, PodDeltaState deltaState) //Draw Humidity
 {
     int length;
     if(page != Pod_Display_Scene)
@@ -260,6 +271,7 @@ void pod_widgets_redraw_humidity(App* app,uint8_t hX, uint8_t hY,int page) //Dra
         char h[length];//creates string for humidity
         snprintf(h,length,"%6.2f",(double)humid);//stores humidity in string
         widget_add_string_element(app->widget,hX+11,hY+13,AlignLeft,AlignBottom,FontPrimary,h);
+
     }
     else {
 
@@ -296,6 +308,18 @@ void pod_widgets_redraw_humidity(App* app,uint8_t hX, uint8_t hY,int page) //Dra
                 app_quit(app);
                 return;
         }
+
+        switch (deltaState) {
+            case POD_Left_Side_Delta:
+                humidGPIO = humidGPIO - humidPWS;
+                break;
+            case POD_Right_Side_Delta:
+                humidPWS = humidGPIO - humidPWS;
+                break;
+            default:
+                break;
+        }
+
         widget_add_icon_element(app->widget,hX+40,hY+2,humidityUnitWidget);
         length = snprintf(NULL,0,"%6.2f",(double)humidGPIO)+1;//finds num of digits in humidity
         char h[length];//creates string for humidity

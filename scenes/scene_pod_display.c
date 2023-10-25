@@ -283,7 +283,7 @@ void pod_display_view_redraw_widget(App* app) {
         128,
         64,
         0); //Flipper screen size is 128x64, this draws a border around it
-    widget_add_frame_element(app->widget, 126, app->canvas_y_offset + 2, 2, 20, 0); //Scroll Bar
+    widget_add_frame_element(app->widget, 126, app->canvas_y_offset + 2, 2, 15, 0); //Scroll Bar
     if(app->canvas_y_offset == 0)//Banner
     {
         Icon* podBanner = (Icon*)&I_pod_display_banner_top_90x15;
@@ -320,11 +320,11 @@ void pod_display_view_redraw_widget(App* app) {
 
         if(tempCombinedY > app->canvas_y_offset) //Should you draw temp?
         {
-            pod_widgets_redraw_temperature(app, tempCombinedX, tempCombinedY - app->canvas_y_offset, Pod_Display_Scene);
+            pod_widgets_redraw_temperature(app, tempCombinedX, tempCombinedY - app->canvas_y_offset, Pod_Display_Scene, app->deltaState);
         }
         if(humCombinedY > app->canvas_y_offset) //Should you draw humidity?
         {
-            pod_widgets_redraw_humidity(app, humCombinedX, humCombinedY - app->canvas_y_offset, Pod_Display_Scene);
+            pod_widgets_redraw_humidity(app, humCombinedX, humCombinedY - app->canvas_y_offset, Pod_Display_Scene, app->deltaState);
         }
         if(pressY > app->canvas_y_offset) // should you draw pressure?
         {
@@ -390,8 +390,21 @@ static bool pod_display_input_callback(
         consumed = true;
     } else if(event.input.type == InputTypeShort && event.input.key == InputKeyOk) {
         view_dispatcher_send_custom_event(app->view_dispatcher, POD_Display_Log_Event);
-        consumed = false;
-    }
+        consumed = true;
+    } else if(event.input.type == InputTypePress && event.input.key == InputKeyLeft) {
+        view_dispatcher_send_custom_event(app->view_dispatcher, POD_Display_Left_Held_Event);
+        consumed = true;
+	} else if(event.input.type == InputTypePress && event.input.key == InputKeyRight) {
+		view_dispatcher_send_custom_event(app->view_dispatcher, POD_Display_Right_Held_Event);
+		consumed = true;
+    } else if(event.input.type == InputTypeRelease && event.input.key == InputKeyLeft) {
+        view_dispatcher_send_custom_event(app->view_dispatcher, POD_Display_Left_Release_Event);
+        consumed = true;
+	} else if(event.input.type == InputTypeRelease && event.input.key == InputKeyRight) {
+		view_dispatcher_send_custom_event(app->view_dispatcher, POD_Display_Right_Release_Event);
+		consumed = true;
+	}
+    
     //furi_message_queue_put(app->queue, &event, FuriWaitForever);
     return consumed;
     //return false;
@@ -494,6 +507,22 @@ bool pod_display_scene_on_event(void* context, SceneManagerEvent event) {
             FURI_LOG_I(TAG, "Log Event");
             logger_stream_append(app); // Add new log line using current data
             consumed = false;
+            break;
+        case POD_Display_Left_Held_Event:
+            FURI_LOG_I(TAG, "Left held event");
+            app->deltaState = POD_Left_Side_Delta;
+            break;
+        case POD_Display_Right_Held_Event:
+            FURI_LOG_I(TAG, "Right held event");
+            app->deltaState = POD_Right_Side_Delta;
+            break;
+        case POD_Display_Left_Release_Event:
+            FURI_LOG_I(TAG, "Left release event");
+            app->deltaState = POD_Neutral_Delta;
+            break;
+        case POD_Display_Right_Release_Event:
+            FURI_LOG_I(TAG, "Right release event");
+            app->deltaState = POD_Neutral_Delta;
             break;
         }
         break;

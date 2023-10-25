@@ -48,11 +48,11 @@ void pod_pws_display_view_redraw_widget(App* app)
 
         if(tempY > app->canvas_y_offset)//Should you draw temp?
         {
-            pod_widgets_redraw_temperature(app,tempX,tempY - app->canvas_y_offset,Pod_Pws_Display_Scene);
+            pod_widgets_redraw_temperature(app,tempX,tempY - app->canvas_y_offset,Pod_Pws_Display_Scene, app->deltaState);
         }
         if(humY > app->canvas_y_offset)//Should you draw humidity?
         {
-            pod_widgets_redraw_humidity(app,humX,humY - app->canvas_y_offset,Pod_Pws_Display_Scene);
+            pod_widgets_redraw_humidity(app,humX,humY - app->canvas_y_offset,Pod_Pws_Display_Scene, app->deltaState);
         }
         if(timerY > app->canvas_y_offset)//Should you draw timer?
         {
