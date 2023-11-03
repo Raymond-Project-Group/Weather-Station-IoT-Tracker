@@ -3,12 +3,18 @@
 
 #include "../flipper.h"
 
+
+
 typedef enum{
     POD_Display_Exit_Event,
     POD_Display_Tick_Event,
     POD_Display_Scroll_Event,
     POD_Display_Key_Event,
     POD_Display_Log_Event,
+    POD_Display_Left_Held_Event,
+    POD_Display_Left_Release_Event,
+    POD_Display_Right_Held_Event,
+    POD_Display_Right_Release_Event,
 }PodDisplayEventType;
 
 typedef struct {

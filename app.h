@@ -7,6 +7,12 @@
 #include "./weather_stations/weather_station.h"
 
 typedef enum {
+    POD_Neutral_Delta,
+    POD_Left_Side_Delta,
+    POD_Right_Side_Delta,
+} PodDeltaState;
+
+typedef enum {
     F,
     C,
     K,
@@ -62,6 +68,7 @@ typedef struct { //To view examples of modules: https://brodan.biz/blog/a-visual
     Stream* file_stream; // output log stream
     uint16_t
         canvas_y_offset; //Used to note how far off the y-axis we are(scroll up and down functionality)
+    PodDeltaState deltaState;
 } App;
 
 App* app_alloc();
