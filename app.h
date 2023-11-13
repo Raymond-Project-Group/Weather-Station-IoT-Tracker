@@ -41,12 +41,19 @@ extern const char* TimeNames[Time_Count];
 typedef enum { pws_sync, manual_only, Log_Mode_Count,} LogModes;
 extern const char* LogModeNames[Log_Mode_Count];
 
-typedef struct {
+extern const int GPSBaudRates[6];
+
+
+typedef struct __attribute__((packed)) {
     TemperatureUnits temperature;
     HumidityUnits humidity;
     PressureUnits pressure;
     TimeStandards time;
     LogModes logMode;
+    int gps_baudrate;
+    float temp_offset;
+    float humidity_offset;
+    float pressure_offset;
 } AppSettings;
 
 typedef struct { //To view examples of modules: https://brodan.biz/blog/a-visual-guide-to-flipper-zero-gui-components/
@@ -72,9 +79,7 @@ typedef struct { //To view examples of modules: https://brodan.biz/blog/a-visual
 } App;
 
 App* app_alloc();
-AppSettings* app_settings_alloc();
 void app_quit(App* app);
 void app_free(App* app);
-void app_init_settings(App* app);
 
 #endif

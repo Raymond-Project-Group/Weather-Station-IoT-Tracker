@@ -2,9 +2,8 @@
 
 #include <math.h>
 #include "../pod.h"
+#include "../helpers/file_locations.h"
 
-#define APP_PATH_FOLDER "/ext/pod"
-#define APP_FILENAME_DATA "data.csv"
 
 Stream* logger_stream_alloc(Storage* storage) {
     FuriString* filepath = furi_string_alloc();

@@ -20,8 +20,6 @@ int32_t pod_app(void* p) {
     App* app = app_alloc();
     //app->bme280 = bme_init();
     
-    app_init_settings(app);
-
     Gui* gui = furi_record_open(RECORD_GUI);
     view_dispatcher_attach_to_gui(app->view_dispatcher, gui, ViewDispatcherTypeFullscreen);
     scene_manager_next_scene(app->scene_manager, Pod_Main_Menu_Scene);

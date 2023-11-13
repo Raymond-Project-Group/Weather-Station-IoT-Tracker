@@ -65,7 +65,6 @@ void pod_settings_scene_on_enter(void* context)
     VariableItem* log = variable_item_list_add(app->variable_item_list, "Log Mode", Log_Mode_Count, pod_settings_change_log_mode, app);
     variable_item_set_current_value_text(log, LogModeNames[app->settings->logMode]);
 
-    view_dispatcher_switch_to_view(app->view_dispatcher, Pod_Variable_Item_List_View);
 }
 bool pod_settings_scene_on_event(void* context, SceneManagerEvent event)
 {

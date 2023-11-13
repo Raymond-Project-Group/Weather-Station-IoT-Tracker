@@ -2,12 +2,14 @@
 #include "app.h"
 #include "scenes/scenes.h"
 #include "logger/logger.h"
+#include "helpers/settings_helper.h"
 
 const char* TemperatureNames[Temp_Count] = {"F", "C", "K"};
 const char* HumidityNames[Humid_Count] = {"Relative", "Absolute"};
 const char* PressureNames[Pressure_Count] = {"mbar", "hPa", "PSI", "inHg", "mmHg", "Torr"};
 const char* TimeNames[Time_Count] = {"UTC", "EST"};
 const char* LogModeNames[Log_Mode_Count] = {"Auto", "Manual"};
+const int GPSBaudRates[6] = { 4800, 9600, 19200, 38400, 57600, 115200 };
 
 App* app_alloc() { //allocate and initialize app.  add required views and scenes
     App* app = malloc(sizeof(App));
@@ -37,7 +39,7 @@ App* app_alloc() { //allocate and initialize app.  add required views and scenes
     app->storage = furi_record_open(RECORD_STORAGE);
     app->file_stream = logger_stream_alloc(app->storage);
 
-    app->settings = app_settings_alloc();
+    app->settings = app_settings_setup(app->storage);
     app->gps_uart = gps_uart_enable();
     app->bme280 = bme_init();
 
@@ -50,18 +52,6 @@ App* app_alloc() { //allocate and initialize app.  add required views and scenes
     return app;
 }
 
-AppSettings* app_settings_alloc() { //allocate space for appsettings
-    AppSettings* settings = malloc(sizeof(AppSettings));
-    return settings;
-}
-
-void app_init_settings(App* app) { //initialize appsettings
-    app->settings->temperature = 1;
-    app->settings->humidity = 0;
-    app->settings->pressure = 0;
-    app->settings->time = 0;
-    app->settings->logMode = 0;
-}
 
 void app_quit(App* app) { //close app
     scene_manager_stop(app->scene_manager);
@@ -71,7 +61,7 @@ void app_free(App* app) { //free created spaces and close views and settings
     furi_assert(app);
     bme_free(app->bme280);
     gps_uart_disable(app->gps_uart);
-    free(app->settings);
+    app_settings_close(app->settings, app->storage);
     //bme_free(app->bme280);
 
     furi_mutex_free(app->mutex);
