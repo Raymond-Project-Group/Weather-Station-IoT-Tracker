@@ -44,7 +44,7 @@ extern const char* LogModeNames[Log_Mode_Count];
 extern const int GPSBaudRates[6];
 
 
-typedef struct __attribute__((packed)) {
+typedef struct {
     TemperatureUnits temperature;
     HumidityUnits humidity;
     PressureUnits pressure;
@@ -54,7 +54,7 @@ typedef struct __attribute__((packed)) {
     float temp_offset;
     float humidity_offset;
     float pressure_offset;
-} AppSettings;
+} __attribute__((packed)) AppSettings;
 
 typedef struct { //To view examples of modules: https://brodan.biz/blog/a-visual-guide-to-flipper-zero-gui-components/
     SceneManager* scene_manager;

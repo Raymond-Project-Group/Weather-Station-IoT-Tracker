@@ -14,6 +14,7 @@ const int GPSBaudRates[6] = { 4800, 9600, 19200, 38400, 57600, 115200 };
 App* app_alloc() { //allocate and initialize app.  add required views and scenes
     App* app = malloc(sizeof(App));
 
+    FURI_LOG_I("POD", "app alloc begin");
 
     app->scene_manager = scene_manager_alloc(&pod_scene_manager_handlers, app);
     app->view_dispatcher = view_dispatcher_alloc();
@@ -38,6 +39,8 @@ App* app_alloc() { //allocate and initialize app.  add required views and scenes
 
     app->storage = furi_record_open(RECORD_STORAGE);
     app->file_stream = logger_stream_alloc(app->storage);
+
+    FURI_LOG_I("POD", "get to settings setup");
 
     app->settings = app_settings_setup(app->storage);
     app->gps_uart = gps_uart_enable();
