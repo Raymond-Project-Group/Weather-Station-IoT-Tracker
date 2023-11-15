@@ -26,8 +26,6 @@ AppSettings* app_settings_setup(Storage* storage) {
 
     Stream* file_stream = file_stream_alloc(storage);
     
-    FURI_LOG_I(TAG, "settings struct: %d, temp mode: %d", sizeof(AppSettings), sizeof(TemperatureUnits));
-
     if(!file_stream_open(
            file_stream, furi_string_get_cstr(filepath), FSAM_READ, FSOM_OPEN_EXISTING)) {
 

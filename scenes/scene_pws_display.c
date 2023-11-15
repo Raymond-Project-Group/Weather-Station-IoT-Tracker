@@ -132,8 +132,10 @@ void pod_pws_display_scene_on_enter(void* context)
 
     widget_reset(app->widget);
     app->canvas_y_offset = 0;
+    app->gps_uart = gps_uart_enable();
     app->pws = ws_init(app);
-    app->weather_station_initialized = true;
+    app->initialization_states->pws_initialized= true;
+    app->initialization_states->gps_initialized = true;
     //FuriString* str_buff;
     //str_buff = furi_string_alloc();
 
@@ -240,7 +242,9 @@ void pod_pws_display_scene_on_exit(void* context)
     FURI_LOG_I(TAG, "Exiting PWS Display Scene");
     App* app = context;
     ws_free(app->pws);
-    app->weather_station_initialized = false;
+    gps_uart_disable(app->gps_uart);
+    app->initialization_states->pws_initialized = false;
+    app->initialization_states->gps_initialized = false;
     furi_message_queue_free(app->queue);
     furi_timer_free(app->timer);
     widget_reset(app->widget);

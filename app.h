@@ -45,6 +45,12 @@ extern const int GPSBaudRates[6];
 
 
 typedef struct {
+    bool bme_initialized;
+    bool gps_initialized;
+    bool pws_initialized;
+} InitializationStates;
+
+typedef struct {
     TemperatureUnits temperature;
     HumidityUnits humidity;
     PressureUnits pressure;
@@ -70,11 +76,10 @@ typedef struct { //To view examples of modules: https://brodan.biz/blog/a-visual
     Bme280Context* bme280; //BME Module
     GpsUart* gps_uart; //GPS Module
     WeatherStationContext* pws; //Weather Station Module
-    bool weather_station_initialized; // ensure Weather Station Context points to actual station
+    InitializationStates* initialization_states;
     Storage* storage;
     Stream* file_stream; // output log stream
-    uint16_t
-        canvas_y_offset; //Used to note how far off the y-axis we are(scroll up and down functionality)
+    uint16_t canvas_y_offset; //Used to note how far off the y-axis we are(scroll up and down functionality)
     PodDeltaState deltaState;
 } App;
 

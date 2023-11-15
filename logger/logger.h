@@ -14,9 +14,9 @@ void logger_stream_free(Stream* stream);
 void logger_stream_append(App* app);
 void logger_auto_append(void* context);
 
-void append_bme_log(Stream* file_stream, Bme280Data* bme_data);
+void append_bme_log(Stream* file_stream, Bme280Data* bme_data, bool override);
 
-void append_gps_log(Stream* file_stream, GpsStatus* gps_status);
+void append_gps_log(Stream* file_stream, GpsStatus* gps_status, bool override);
 
 void append_ws_log(Stream* file_stream, WeatherStationContext* ws, bool override);
 
