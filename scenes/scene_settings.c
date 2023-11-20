@@ -10,7 +10,6 @@ void pod_settings_change_temp_units(VariableItem* tempChoice)//update temp setti
     uint8_t index = variable_item_get_current_value_index(tempChoice);
     variable_item_set_current_value_text(tempChoice, TemperatureNames[index]);
     app->settings->temperature = index;
-
 }
 
 void pod_settings_change_humid_units(VariableItem* humidChoice)//update humid settings
@@ -44,8 +43,14 @@ void pod_settings_change_log_mode(VariableItem* logChoice) {
     app->settings->logMode = index;
 }
 
-void pod_settings_scene_on_enter(void* context)
-{
+void pod_settings_change_baud_rate(VariableItem* rateChoice) {
+    App* app = variable_item_get_context(rateChoice);
+    uint8_t index = variable_item_get_current_value_index(rateChoice);
+    variable_item_set_current_value_text(rateChoice, GPSBaudRateLabels[index]);
+    app->settings->gps_baudrate = index;
+}
+
+void pod_settings_scene_on_enter(void* context) {
     FURI_LOG_I(TAG, "Settings Scene entered");
     App* app = context;
     variable_item_list_reset(app->variable_item_list);//Reset variable item list
@@ -65,10 +70,15 @@ void pod_settings_scene_on_enter(void* context)
     VariableItem* log = variable_item_list_add(app->variable_item_list, "Log Mode", Log_Mode_Count, pod_settings_change_log_mode, app);
     variable_item_set_current_value_text(log, LogModeNames[app->settings->logMode]);
 
+    VariableItem* rate = variable_item_list_add(
+        app->variable_item_list, "Baud Rate", Baud_Rates_Count, pod_settings_change_baud_rate, app);
+    variable_item_set_current_value_text(rate, GPSBaudRateLabels[app->settings->gps_baudrate]);
+
+    view_dispatcher_switch_to_view(app->view_dispatcher, Pod_Variable_Item_List_View);
+
     FURI_LOG_I(TAG, "Settings Scene entrance complete");
 }
-bool pod_settings_scene_on_event(void* context, SceneManagerEvent event)
-{
+bool pod_settings_scene_on_event(void* context, SceneManagerEvent event) {
     App* app = context;
     bool consumed = false;
     UNUSED(app);
@@ -79,8 +89,7 @@ bool pod_settings_scene_on_event(void* context, SceneManagerEvent event)
     // }
     return consumed;
 }
-void pod_settings_scene_on_exit(void* context)
-{
+void pod_settings_scene_on_exit(void* context) {
     App* app = context;
-    variable_item_list_reset(app->variable_item_list);//Reset variable item list
+    variable_item_list_reset(app->variable_item_list); //Reset variable item list
 }

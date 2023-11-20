@@ -41,6 +41,8 @@ extern const char* TimeNames[Time_Count];
 typedef enum { pws_sync, manual_only, Log_Mode_Count,} LogModes;
 extern const char* LogModeNames[Log_Mode_Count];
 
+typedef enum { br4800, br9600, br19200, br38400, br57600, br115200, Baud_Rates_Count } BaudRates;
+extern const char* GPSBaudRateLabels[Baud_Rates_Count];
 extern const int GPSBaudRates[6];
 
 
@@ -56,7 +58,7 @@ typedef struct {
     PressureUnits pressure;
     TimeStandards time;
     LogModes logMode;
-    int gps_baudrate;
+    BaudRates gps_baudrate;
     float temp_offset;
     float humidity_offset;
     float pressure_offset;

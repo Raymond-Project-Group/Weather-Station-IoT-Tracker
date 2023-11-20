@@ -5,6 +5,7 @@
 #include "../pod.h"
 #include "../logger/logger.h"
 #include "../unit_conversion/unit_conversion.h"
+#include "../helpers/settings_helper.h"
 #include "scene_widgets.h"
 
 #include <applications/services/gui/modules/widget.h>
@@ -46,16 +47,16 @@ void pod_display_view_redraw_time(App* app, uint8_t tX, uint8_t tY) //Draw Time
     length = snprintf(NULL, 0, "%02d:%02d:%02d", hours, data->time_minutes, data->time_seconds) +
              1; //finds num of digits in time
     char t[length]; //creates string for time
-    if (data->time_seconds < 0) { // checks for illegal time
+    if(data->time_seconds < 0) { // checks for illegal time
         strcpy(t, "xx:xx:xx");
     } else {
-    snprintf(
-        t,
-        length,
-        "%02d:%02d:%02d",
-        hours,
-        data->time_minutes,
-        data->time_seconds); //stores time in string
+        snprintf(
+            t,
+            length,
+            "%02d:%02d:%02d",
+            hours,
+            data->time_minutes,
+            data->time_seconds); //stores time in string
     }
     widget_add_string_element(
         app->widget, tX + 14, tY + 13, AlignLeft, AlignBottom, FontPrimary, t);
@@ -284,10 +285,10 @@ void pod_display_view_redraw_widget(App* app) {
         64,
         0); //Flipper screen size is 128x64, this draws a border around it
     widget_add_frame_element(app->widget, 126, app->canvas_y_offset + 2, 2, 15, 0); //Scroll Bar
-    if(app->canvas_y_offset == 0)//Banner
+    if(app->canvas_y_offset == 0) //Banner
     {
         Icon* podBanner = (Icon*)&I_pod_display_banner_top_90x15;
-        widget_add_icon_element(app->widget,18,5,podBanner);
+        widget_add_icon_element(app->widget, 18, 5, podBanner);
     }
     if(app->bme280->state == BME_Disabled) //If initialization failed
     {
@@ -320,11 +321,21 @@ void pod_display_view_redraw_widget(App* app) {
 
         if(tempCombinedY > app->canvas_y_offset) //Should you draw temp?
         {
-            pod_widgets_redraw_temperature(app, tempCombinedX, tempCombinedY - app->canvas_y_offset, Pod_Display_Scene, app->deltaState);
+            pod_widgets_redraw_temperature(
+                app,
+                tempCombinedX,
+                tempCombinedY - app->canvas_y_offset,
+                Pod_Display_Scene,
+                app->deltaState);
         }
         if(humCombinedY > app->canvas_y_offset) //Should you draw humidity?
         {
-            pod_widgets_redraw_humidity(app, humCombinedX, humCombinedY - app->canvas_y_offset, Pod_Display_Scene, app->deltaState);
+            pod_widgets_redraw_humidity(
+                app,
+                humCombinedX,
+                humCombinedY - app->canvas_y_offset,
+                Pod_Display_Scene,
+                app->deltaState);
         }
         if(pressY > app->canvas_y_offset) // should you draw pressure?
         {
@@ -394,17 +405,17 @@ static bool pod_display_input_callback(
     } else if(event.input.type == InputTypePress && event.input.key == InputKeyLeft) {
         view_dispatcher_send_custom_event(app->view_dispatcher, POD_Display_Left_Held_Event);
         consumed = true;
-	} else if(event.input.type == InputTypePress && event.input.key == InputKeyRight) {
-		view_dispatcher_send_custom_event(app->view_dispatcher, POD_Display_Right_Held_Event);
-		consumed = true;
+    } else if(event.input.type == InputTypePress && event.input.key == InputKeyRight) {
+        view_dispatcher_send_custom_event(app->view_dispatcher, POD_Display_Right_Held_Event);
+        consumed = true;
     } else if(event.input.type == InputTypeRelease && event.input.key == InputKeyLeft) {
         view_dispatcher_send_custom_event(app->view_dispatcher, POD_Display_Left_Release_Event);
         consumed = true;
-	} else if(event.input.type == InputTypeRelease && event.input.key == InputKeyRight) {
-		view_dispatcher_send_custom_event(app->view_dispatcher, POD_Display_Right_Release_Event);
-		consumed = true;
-	}
-    
+    } else if(event.input.type == InputTypeRelease && event.input.key == InputKeyRight) {
+        view_dispatcher_send_custom_event(app->view_dispatcher, POD_Display_Right_Release_Event);
+        consumed = true;
+    }
+
     //furi_message_queue_put(app->queue, &event, FuriWaitForever);
     return consumed;
     //return false;
@@ -428,15 +439,16 @@ void pod_display_scene_on_enter(void* context) {
 
     widget_reset(app->widget);
     app->canvas_y_offset = 0;
-    app->gps_uart = gps_uart_enable();
+    app->gps_uart = simple_gps_uart_enable(app);
     app->bme280 = bme_init();
     app->pws = ws_init(app);
-    app->initialization_states->pws_initialized= true;
+    app->initialization_states->pws_initialized = true;
     app->initialization_states->gps_initialized = true;
     app->initialization_states->bme_initialized = true;
 
     if(app->pws->txrx->rx_key_state == WSRxKeyStateIDLE) {
-        ws_preset_init(app->pws, "AM650", subghz_setting_get_default_frequency(app->pws->setting), NULL, 0);
+        ws_preset_init(
+            app->pws, "AM650", subghz_setting_get_default_frequency(app->pws->setting), NULL, 0);
         ws_history_reset(app->pws->txrx->history);
         app->pws->txrx->rx_key_state = WSRxKeyStateStart;
     }
@@ -444,8 +456,12 @@ void pod_display_scene_on_enter(void* context) {
         ws_rx_end(app->pws);
     }
 
-    if((app->pws->txrx->txrx_state == WSTxRxStateIDLE) || (app->pws->txrx->txrx_state == WSTxRxStateSleep)) {
-        ws_begin(app->pws,subghz_setting_get_preset_data_by_name(app->pws->setting, furi_string_get_cstr(app->pws->txrx->preset->name)));
+    if((app->pws->txrx->txrx_state == WSTxRxStateIDLE) ||
+       (app->pws->txrx->txrx_state == WSTxRxStateSleep)) {
+        ws_begin(
+            app->pws,
+            subghz_setting_get_preset_data_by_name(
+                app->pws->setting, furi_string_get_cstr(app->pws->txrx->preset->name)));
         ws_rx(app->pws, app->pws->txrx->preset->frequency);
     }
 

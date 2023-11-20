@@ -11,8 +11,8 @@ typedef enum {
 
 #define GPS_UART_WORKER_ALL_RX_EVENTS (GpsUartWorkerEvtStop | GpsUartWorkerEvtRxDone)
 
-extern const int gps_baudrates[6];// = {4800, 9600, 19200, 38400, 57600, 115200};
-extern int current_gps_baudrate;// = 1;
+extern const int gps_baudrates[6]; // = {4800, 9600, 19200, 38400, 57600, 115200};
+extern int current_gps_baudrate; // = 1;
 
 typedef struct {
     bool valid;
@@ -52,7 +52,7 @@ typedef struct {
 void gps_uart_init_thread(GpsUart* gps_uart);
 void gps_uart_deinit_thread(GpsUart* gps_uart);
 
-GpsUart* gps_uart_enable();
+GpsUart* gps_uart_enable(const int baudrate);
 
 void gps_uart_disable(GpsUart* gps_uart);
 #endif

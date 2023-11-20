@@ -88,3 +88,7 @@ void app_settings_close(AppSettings* settings, Storage* storage) {
     
     free(settings);
 }
+
+GpsUart* simple_gps_uart_enable(App* app) {
+    return gps_uart_enable(GPSBaudRates[app->settings->gps_baudrate]);
+}

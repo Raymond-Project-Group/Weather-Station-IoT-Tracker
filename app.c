@@ -9,6 +9,7 @@ const char* HumidityNames[Humid_Count] = {"Relative", "Absolute"};
 const char* PressureNames[Pressure_Count] = {"mbar", "hPa", "PSI", "inHg", "mmHg", "Torr"};
 const char* TimeNames[Time_Count] = {"UTC", "EST"};
 const char* LogModeNames[Log_Mode_Count] = {"Auto", "Manual"};
+const char* GPSBaudRateLabels[Baud_Rates_Count] = { "4800", "9600", "19200", "38400", "57600", "115200"};
 const int GPSBaudRates[6] = { 4800, 9600, 19200, 38400, 57600, 115200 };
 
 App* app_alloc() { //allocate and initialize app.  add required views and scenes
