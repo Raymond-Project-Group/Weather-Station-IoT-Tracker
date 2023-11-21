@@ -38,9 +38,9 @@ void logger_stream_free(Stream* file_stream) {
 
 void logger_stream_append(App* app) {
     furi_mutex_acquire(app->mutex, FuriWaitForever);
-    append_bme_log(app->file_stream, app->bme280->data);
+    append_bme_log(app->file_stream, app->bme280->data, !app->bme_initialized);
     stream_write_char(app->file_stream, ',');
-    append_gps_log(app->file_stream, app->gps_uart->status);
+    append_gps_log(app->file_stream, app->gps_uart->status, !app->gps_initialized);
     stream_write_char(app->file_stream, ',');
     append_ws_log(app->file_stream, app->pws, !app->weather_station_initialized);
     stream_write_char(app->file_stream, '\n');
@@ -50,13 +50,20 @@ void logger_stream_append(App* app) {
 void logger_auto_append(void* context) {
     furi_assert(context);
     App* app = (App*) context;
+    FURI_LOG_I(TAG,"Appending Context");
     if (app->settings->logMode == manual_only)
         return;
 
     logger_stream_append(app);
 }
 
-void append_bme_log(Stream* file_stream, Bme280Data* bme_data) {
+void append_bme_log(Stream* file_stream, Bme280Data* bme_data,bool override) {
+
+    // prevents accessing junk data
+    if(override) {
+        stream_write_cstring(file_stream, ",,");
+        return;
+    }
 
     stream_write_format(
         file_stream,
@@ -66,7 +73,13 @@ void append_bme_log(Stream* file_stream, Bme280Data* bme_data) {
         (double)bme_data->pressure);
 }
 
-void append_gps_log(Stream* file_stream, GpsStatus* gps_status) {
+void append_gps_log(Stream* file_stream, GpsStatus* gps_status,bool override) {
+
+    // prevents accessing junk data
+    if(override) {
+        stream_write_cstring(file_stream, ",,,,,");
+        return;
+    }
 
     stream_write_format(file_stream, "%f,%f,", (double)gps_status->latitude, (double)gps_status->longitude);
 

@@ -38,9 +38,9 @@ App* app_alloc() { //allocate and initialize app.  add required views and scenes
     app->file_stream = logger_stream_alloc(app->storage);
 
     app->settings = app_settings_alloc();
-    app->gps_uart = gps_uart_enable();
-    app->bme280 = bme_init();
-
+    FURI_LOG_I("POD", "accessable at 7");
+    app->bme_initialized = false;
+    app->gps_initialized = false;
     app->weather_station_initialized = false;
 
     app->deltaState = POD_Neutral_Delta;
@@ -69,8 +69,6 @@ void app_quit(App* app) { //close app
 
 void app_free(App* app) { //free created spaces and close views and settings
     furi_assert(app);
-    bme_free(app->bme280);
-    gps_uart_disable(app->gps_uart);
     free(app->settings);
     //bme_free(app->bme280);
 

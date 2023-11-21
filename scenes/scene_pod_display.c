@@ -426,6 +426,13 @@ void pod_display_scene_on_enter(void* context) {
     FURI_LOG_I(TAG, "POD POD_Display Scene entered");
     App* app = context;
 
+    //enables threads being used in this scene
+    app->gps_uart = gps_uart_enable(); 
+    app->bme280 = bme_init();
+    app->gps_initialized = true;
+    app->bme_initialized = true;
+
+    
     widget_reset(app->widget);
     app->canvas_y_offset = 0;
     app->pws = ws_init(app);
@@ -540,4 +547,8 @@ void pod_display_scene_on_exit(void* context) {
     furi_message_queue_free(app->queue);
     furi_timer_free(app->timer);
     widget_reset(app->widget);
+    bme_free(app->bme280);
+    gps_uart_disable(app->gps_uart);
+    app->gps_initialized = false;
+    app->bme_initialized = false;
 }

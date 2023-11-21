@@ -35,7 +35,7 @@ void pod_pws_display_view_redraw_widget(App* app)
         uint8_t humY = 23;
         uint8_t timerX = 2;
         uint8_t timerY = 43;
-        uint8_t timeX = 64;
+        /*uint8_t timeX = 64;
         uint8_t timeY = 43;
         uint8_t latX = 2;
         uint8_t latY = 63;
@@ -44,7 +44,7 @@ void pod_pws_display_view_redraw_widget(App* app)
         uint8_t altX = 2;
         uint8_t altY = 83;
         uint8_t satX = 64;
-        uint8_t satY = 83;
+        uint8_t satY = 83;*/
 
         if(tempY > app->canvas_y_offset)//Should you draw temp?
         {
@@ -58,7 +58,7 @@ void pod_pws_display_view_redraw_widget(App* app)
         {
             pod_widgets_redraw_timer(app,timerX,timerY - app->canvas_y_offset);
         }
-        if(timeY > app->canvas_y_offset)//Should you draw time?
+        /*if(timeY > app->canvas_y_offset)//Should you draw time?
         {
             pod_widgets_redraw_time(app,timeX,timeY - app->canvas_y_offset);
         }
@@ -77,7 +77,7 @@ void pod_pws_display_view_redraw_widget(App* app)
         if(satY > app->canvas_y_offset)//Should you draw satellites?
         {
             pod_widgets_redraw_satellites(app,satX,satY - app->canvas_y_offset);
-        }
+        }*/
     }
     else
     {
@@ -129,7 +129,8 @@ void pod_pws_display_scene_on_enter(void* context)
 {
     FURI_LOG_I(TAG, "PWS Display Scene entered");
     App* app = context;
-
+    app->gps_uart = gps_uart_enable();
+    app->gps_initialized = true;
     widget_reset(app->widget);
     app->canvas_y_offset = 0;
     app->pws = ws_init(app);
@@ -241,7 +242,9 @@ void pod_pws_display_scene_on_exit(void* context)
     App* app = context;
     ws_free(app->pws);
     app->weather_station_initialized = false;
+    app->gps_initialized = false;
     furi_message_queue_free(app->queue);
     furi_timer_free(app->timer);
     widget_reset(app->widget);
+    //gps_uart_disable(app->gps_uart);
 }

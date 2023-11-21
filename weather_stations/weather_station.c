@@ -40,7 +40,9 @@ static void ws_subghz_general_callback(SubGhzReceiver* receiver,SubGhzProtocolDe
         flipper_format_read_string(fff, "Protocol", ws->data->protocol_name);//gets protocol name
         
         if(ws_block_generic_deserialize(ws->data->generic , fff) == SubGhzProtocolStatusOk) { //updates data i think?
+            FURI_LOG_I(TAG,"Deserialized Data");
             logger_auto_append(ws->parentApp);
+            FURI_LOG_I(TAG,"Logged Data");
         } 
     }
     else if(ws_hist == WSHistoryStateAddKeyUpdateData)//old one

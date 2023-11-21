@@ -21,10 +21,7 @@ void ws_block_generic_get_preset_name(const char* preset_name, FuriString* prese
     furi_string_set(preset_str, preset_name_temp);
 }
 
-SubGhzProtocolStatus ws_block_generic_serialize(
-    WSBlockGeneric* instance,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus ws_block_generic_serialize(WSBlockGeneric* instance,FlipperFormat* flipper_format,SubGhzRadioPreset* preset) {
     furi_assert(instance);
     SubGhzProtocolStatus res = SubGhzProtocolStatusError;
     FuriString* temp_str;
@@ -58,8 +55,7 @@ SubGhzProtocolStatus ws_block_generic_serialize(
                 res = SubGhzProtocolStatusErrorParserCustomPreset;
                 break;
             }
-            if(!flipper_format_write_hex(
-                   flipper_format, "Custom_preset_data", preset->data, preset->data_size)) {
+            if(!flipper_format_write_hex(flipper_format, "Custom_preset_data", preset->data, preset->data_size)) {
                 FURI_LOG_E(TAG, "Unable to add Custom_preset_data");
                 res = SubGhzProtocolStatusErrorParserCustomPreset;
                 break;
@@ -70,6 +66,7 @@ SubGhzProtocolStatus ws_block_generic_serialize(
             res = SubGhzProtocolStatusErrorParserProtocolName;
             break;
         }
+        FURI_LOG_I("Name",instance->protocol_name);
 
         uint32_t temp_data = instance->id;
         if(!flipper_format_write_uint32(flipper_format, "Id", &temp_data, 1)) {
@@ -77,6 +74,7 @@ SubGhzProtocolStatus ws_block_generic_serialize(
             res = SubGhzProtocolStatusErrorParserOthers;
             break;
         }
+        FURI_LOG_I("ID","0x%lx", temp_data);
 
         temp_data = instance->data_count_bit;
         if(!flipper_format_write_uint32(flipper_format, "Bit", &temp_data, 1)) {
@@ -84,6 +82,7 @@ SubGhzProtocolStatus ws_block_generic_serialize(
             res = SubGhzProtocolStatusErrorParserBitCount;
             break;
         }
+        FURI_LOG_I("Bit","0x%lx", temp_data);
 
         uint8_t key_data[sizeof(uint64_t)] = {0};
         for(size_t i = 0; i < sizeof(uint64_t); i++) {
@@ -102,6 +101,7 @@ SubGhzProtocolStatus ws_block_generic_serialize(
             res = SubGhzProtocolStatusErrorParserOthers;
             break;
         }
+        FURI_LOG_I("Battery","0x%lx", temp_data);
 
         temp_data = instance->humidity;
         if(!flipper_format_write_uint32(flipper_format, "Hum", &temp_data, 1)) {
@@ -109,6 +109,7 @@ SubGhzProtocolStatus ws_block_generic_serialize(
             res = SubGhzProtocolStatusErrorParserOthers;
             break;
         }
+        FURI_LOG_I("Humidity","0x%lx", temp_data);
 
         //DATE AGE set
         FuriHalRtcDateTime curr_dt;
@@ -121,6 +122,7 @@ SubGhzProtocolStatus ws_block_generic_serialize(
             res = SubGhzProtocolStatusErrorParserOthers;
             break;
         }
+        FURI_LOG_I("time","0x%lx", temp_data);
 
         temp_data = instance->channel;
         if(!flipper_format_write_uint32(flipper_format, "Ch", &temp_data, 1)) {
@@ -128,6 +130,7 @@ SubGhzProtocolStatus ws_block_generic_serialize(
             res = SubGhzProtocolStatusErrorParserOthers;
             break;
         }
+        FURI_LOG_I("Channel","0x%lx", temp_data);
 
         temp_data = instance->btn;
         if(!flipper_format_write_uint32(flipper_format, "Btn", &temp_data, 1)) {
@@ -135,6 +138,7 @@ SubGhzProtocolStatus ws_block_generic_serialize(
             res = SubGhzProtocolStatusErrorParserOthers;
             break;
         }
+        FURI_LOG_I("Btn","0x%lx", temp_data);
 
         float temp = instance->temp;
         if(!flipper_format_write_float(flipper_format, "Temp", &temp, 1)) {
@@ -142,9 +146,16 @@ SubGhzProtocolStatus ws_block_generic_serialize(
             res = SubGhzProtocolStatusErrorParserOthers;
             break;
         }
-
+        FURI_LOG_I("temperature","%f", (double)temp);
         res = SubGhzProtocolStatusOk;
     } while(false);
+
+
+    Stream *stream = flipper_format_get_raw_stream(flipper_format);
+    while(stream_read_line(stream,temp_str))
+    {
+        FURI_LOG_I("",furi_string_get_cstr(temp_str));
+    }
     furi_string_free(temp_str);
     return res;
 }
@@ -228,10 +239,9 @@ SubGhzProtocolStatus ws_block_generic_deserialize(WSBlockGeneric* instance, Flip
             break;
         }
         instance->temp = temp;
-
         res = SubGhzProtocolStatusOk;
     } while(0);
-
+    FURI_LOG_I("WSGen","%llx",instance->data);
     return res;
 }
 
@@ -246,10 +256,22 @@ SubGhzProtocolStatus ws_block_generic_deserialize_check_count_bit(
             break;
         }
         if(instance->data_count_bit != count_bit) {
-            FURI_LOG_E(TAG, "Wrong number of bits in key");
+            FURI_LOG_E(TAG, "Wrong number of bits in key (%d expected),(%d actual)",instance->data_count_bit,count_bit);
             ret = SubGhzProtocolStatusErrorValueBitCount;
             break;
         }
     } while(false);
     return ret;
+}
+
+
+uint8_t ws_get_even_parity(uint n)
+{
+	uint8_t parity = 0;
+	while (n)
+	{
+		parity = !parity;
+		n	 = n & (n - 1);
+	}	 
+	return parity;
 }

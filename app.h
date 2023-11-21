@@ -11,7 +11,7 @@ typedef enum {
     POD_Left_Side_Delta,
     POD_Right_Side_Delta,
 } PodDeltaState;
-
+#include "./weather_stations/ws_transmit.h"
 typedef enum {
     F,
     C,
@@ -63,11 +63,13 @@ typedef struct { //To view examples of modules: https://brodan.biz/blog/a-visual
     Bme280Context* bme280; //BME Module
     GpsUart* gps_uart; //GPS Module
     WeatherStationContext* pws; //Weather Station Module
+    Message* message; //Weather Station Transmission Module
     bool weather_station_initialized; // ensure Weather Station Context points to actual station
+    bool bme_initialized; // ensure gps Context points to actual station
+    bool gps_initialized; // ensure gps Context points to actual station
     Storage* storage;
     Stream* file_stream; // output log stream
-    uint16_t
-        canvas_y_offset; //Used to note how far off the y-axis we are(scroll up and down functionality)
+    uint16_t canvas_y_offset; //Used to note how far off the y-axis we are(scroll up and down functionality)
     PodDeltaState deltaState;
 } App;
 
