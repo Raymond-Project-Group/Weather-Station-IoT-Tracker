@@ -20,4 +20,5 @@ void pod_widgets_redraw_frequency(App* app,uint8_t fX, uint8_t fY); //Draw Frequ
 void pod_widgets_redraw_protocol(App* app, uint8_t pX, uint8_t pY); //Draw Protocol
 void pod_widgets_redraw_humidity_transmit(App* app,uint8_t hX, uint8_t hY);
 void pod_widgets_redraw_temperature_transmit(App* app,uint8_t tX, uint8_t tY); //Draw temperature 
+void pod_widgets_redraw_rssi(App* app,uint8_t rX, uint8_t rY);
 #endif

@@ -22,6 +22,7 @@ typedef enum {
 typedef struct {
     FuriString* protocol_name;
     WSBlockGeneric* generic;
+    float rssi;
 } WSReceiverInfoModel;
 
 typedef struct {

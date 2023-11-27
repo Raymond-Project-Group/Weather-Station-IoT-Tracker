@@ -35,6 +35,8 @@ void pod_pws_display_view_redraw_widget(App* app)
         uint8_t humY = 23;
         uint8_t timerX = 2;
         uint8_t timerY = 43;
+        //uint8_t rssiX = 64;
+        //uint8_t rssiY = 43;
         uint8_t timeX = 64;
         uint8_t timeY = 43;
         uint8_t latX = 2;
@@ -78,6 +80,10 @@ void pod_pws_display_view_redraw_widget(App* app)
         {
             pod_widgets_redraw_satellites(app,satX,satY - app->canvas_y_offset);
         }
+        /*if(rssiY > app->canvas_y_offset)
+        {
+            pod_widgets_redraw_rssi(app,rssiX,rssiY - app->canvas_y_offset);
+        }*/
     }
     else
     {
@@ -129,7 +135,7 @@ void pod_pws_display_scene_on_enter(void* context)
 {
     FURI_LOG_I(TAG, "PWS Display Scene entered");
     App* app = context;
-    //app->gps_uart = gps_uart_enable();
+    app->gps_uart = gps_uart_enable();
 
     widget_reset(app->widget);
     app->canvas_y_offset = 0;

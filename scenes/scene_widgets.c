@@ -373,6 +373,21 @@ void pod_widgets_redraw_satellites(App* app,uint8_t sX, uint8_t sY) //Draw Satel
     snprintf(t,length,"%d",data->satellites_tracked);//stores satellites in string
     widget_add_string_element(app->widget,sX+20,sY+13,AlignLeft,AlignBottom,FontPrimary,t);
 }
+void pod_widgets_redraw_rssi(App* app,uint8_t rX, uint8_t rY) //Draw rssi
+{
+    int length;
+    float rssi = app->pws->data->rssi;
+
+    widget_add_frame_element(app->widget,rX,rY,61,19,0);  //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
+    //Icon* altitudeWidget = (Icon*)&I_altitude_10x11;
+    //widget_add_icon_element(app->widget, rX+2, rY+4, altitudeWidget);
+    //Icon* altitudeUnitWidget = (Icon*)&I_m_10x15;
+    //widget_add_icon_element(app->widget, rX+50, rY+2, altitudeUnitWidget);
+    length = snprintf(NULL,0,"%.1f",(double)rssi)+1;//finds num of digits in rssi
+    char t[length];//creates string for rssi
+    snprintf(t,length,"%.1f",(double)rssi);//stores rssi in string
+    widget_add_string_element(app->widget,rX+14,rY+13,AlignLeft,AlignBottom,FontPrimary,t);
+}
 
 void pod_widgets_redraw_temperature(App* app,uint8_t tX, uint8_t tY, int page, PodDeltaState deltaState) //Draw Temperature
 {

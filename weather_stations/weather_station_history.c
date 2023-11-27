@@ -179,7 +179,7 @@ WSHistoryStateAddKey ws_history_add_to_history(WSHistory* instance, void* contex
             Stream* flipper_string_stream = flipper_format_get_raw_stream(item->flipper_string);
             stream_clean(flipper_string_stream);
             subghz_protocol_decoder_base_serialize(decoder_base, item->flipper_string, preset);
-            return WSHistoryStateAddKeyUpdateData;
+            return WSHistoryStateAddKeyUpdateData; //*(I+1)  So the other side can be /3 - 1 to find I.  Then we can correctly log 
         }
     }
 

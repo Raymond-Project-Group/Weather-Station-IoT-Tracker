@@ -29,6 +29,9 @@ static void ws_subghz_general_callback(SubGhzReceiver* receiver,SubGhzProtocolDe
     furi_assert(context);
     WeatherStationContext* ws = context;
     uint8_t ws_hist = ws_history_add_to_history(ws->txrx->history, decoder_base, ws->txrx->preset);
+    float rssi = furi_hal_subghz_get_rssi();
+    FURI_LOG_I(TAG,"RSSI: %f",(double)rssi);
+
     if(ws_hist == WSHistoryStateAddKeyNewDada) //Is it new?, if so, add it to history
     {
         FURI_LOG_I(TAG,"Added to History");
@@ -38,14 +41,16 @@ static void ws_subghz_general_callback(SubGhzReceiver* receiver,SubGhzProtocolDe
         FlipperFormat* fff = ws_history_get_raw_data(ws->txrx->history,ws->txrx->idx_menu_chosen);//Gets Flipper Format and Raw Data
         flipper_format_rewind(fff);
         flipper_format_read_string(fff, "Protocol", ws->data->protocol_name);//gets protocol name
-        
         if(ws_block_generic_deserialize(ws->data->generic , fff) == SubGhzProtocolStatusOk) { //updates data i think?
             logger_auto_append(ws->parentApp);
         } 
     }
-    else if(ws_hist == WSHistoryStateAddKeyUpdateData)//old one
+    //else if(ws_hist == WSHistoryStateAddKeyUpdateData)//old one
+    else if(ws_hist % 3 == 0 && ws_hist >=  WSHistoryStateAddKeyUpdateData)
     {
         FURI_LOG_I(TAG,"Updated Records");
+        ws->data->rssi = rssi;
+        //ws->txrx->idx_menu_chosen = ws_hist/3 - 1;//So that the screen always shows the most recent one
         if(ws_block_generic_deserialize(ws->data->generic ,ws_history_get_raw_data(ws->txrx->history,ws->txrx->idx_menu_chosen)) == SubGhzProtocolStatusOk) {
             logger_auto_append(ws->parentApp);
         } 
