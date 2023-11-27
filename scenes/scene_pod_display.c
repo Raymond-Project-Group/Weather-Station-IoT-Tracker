@@ -425,6 +425,8 @@ void pod_display_tick_callback(
 void pod_display_scene_on_enter(void* context) {
     FURI_LOG_I(TAG, "POD POD_Display Scene entered");
     App* app = context;
+    app->gps_uart = gps_uart_enable();
+    app->bme280 = bme_init();
 
     widget_reset(app->widget);
     app->canvas_y_offset = 0;
@@ -535,6 +537,8 @@ bool pod_display_scene_on_event(void* context, SceneManagerEvent event) {
 void pod_display_scene_on_exit(void* context) {
     FURI_LOG_I(TAG, "Exiting POD POD_Display Scene");
     App* app = context;
+    bme_free(app->bme280);
+    gps_uart_disable(app->gps_uart);
     ws_free(app->pws);
     app->weather_station_initialized = false;
     furi_message_queue_free(app->queue);

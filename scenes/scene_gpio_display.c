@@ -137,6 +137,8 @@ void pod_gpio_display_scene_on_enter(void* context)
 {
     FURI_LOG_I(TAG, "GPIO Display Scene entered");
     App* app = context;
+    app->gps_uart = gps_uart_enable();
+    app->bme280 = bme_init();
 
     widget_reset(app->widget);
     app->canvas_y_offset = 0;
@@ -219,6 +221,8 @@ void pod_gpio_display_scene_on_exit(void* context)
 {
     FURI_LOG_I(TAG, "Exiting GPIO Display Scene");
     App* app = context;
+    bme_free(app->bme280);
+    gps_uart_disable(app->gps_uart);
     furi_message_queue_free(app->queue);
     furi_timer_free(app->timer);
     widget_reset(app->widget);

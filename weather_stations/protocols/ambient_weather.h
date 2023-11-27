@@ -78,3 +78,14 @@ SubGhzProtocolStatus
  * @param output Resulting text
  */
 void ws_protocol_decoder_ambient_weather_get_string(void* context, FuriString* output);
+
+void* ws_protocol_encoder_ambient_weather_alloc(SubGhzEnvironment* environment);
+
+void ws_protocol_encoder_ambient_weather_free(void* context);
+
+SubGhzProtocolStatus ws_protocol_encoder_ambient_weather_deserialize(void* context, FlipperFormat* flipper_format);
+
+LevelDuration ws_protocol_encoder_ambient_weather_yield(void* context);
+
+void ws_protocol_encoder_ambient_weather_stop(void* context);
+void ws_protocol_ambient_weather_reconstructor(WSBlockGeneric* instance);

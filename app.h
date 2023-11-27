@@ -5,6 +5,7 @@
 #include "./bme280/bme280.h"
 #include "./flipperzero-gps/gps_uart.h"
 #include "./weather_stations/weather_station.h"
+#include "./weather_stations/ws_transmit.h"
 
 typedef enum {
     POD_Neutral_Delta,
@@ -63,6 +64,7 @@ typedef struct { //To view examples of modules: https://brodan.biz/blog/a-visual
     Bme280Context* bme280; //BME Module
     GpsUart* gps_uart; //GPS Module
     WeatherStationContext* pws; //Weather Station Module
+    Message* message; //Weather Station Transmission Module
     bool weather_station_initialized; // ensure Weather Station Context points to actual station
     Storage* storage;
     Stream* file_stream; // output log stream
