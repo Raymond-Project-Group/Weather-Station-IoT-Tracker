@@ -38,20 +38,20 @@ static void ws_subghz_general_callback(SubGhzReceiver* receiver,SubGhzProtocolDe
         ws->txrx->history_size ++;
         ws->txrx->rx_key_state = WSRxKeyStateAddKey;
         
-        FlipperFormat* fff = ws_history_get_raw_data(ws->txrx->history,ws->txrx->idx_menu_chosen);//Gets Flipper Format and Raw Data
+       /* FlipperFormat* fff = ws_history_get_raw_data(ws->txrx->history,ws->txrx->idx_menu_chosen);//Gets Flipper Format and Raw Data
         flipper_format_rewind(fff);
         flipper_format_read_string(fff, "Protocol", ws->data->protocol_name);//gets protocol name
         if(ws_block_generic_deserialize(ws->data->generic , fff) == SubGhzProtocolStatusOk) { //updates data i think?
-            logger_auto_append(ws->parentApp);
-        } 
+            logger_auto_append(ws->parentApp);//CHANGE THIS TO INCLUDE
+        }*/ 
     }
     //else if(ws_hist == WSHistoryStateAddKeyUpdateData)//old one
-    else if(ws_hist % 3 == 0 && ws_hist >=  WSHistoryStateAddKeyUpdateData)
+    else if(ws_hist == WSHistoryStateAddKeyUpdateData)
     {
         FURI_LOG_I(TAG,"Updated Records");
-        ws->data->rssi = rssi;
         //ws->txrx->idx_menu_chosen = ws_hist/3 - 1;//So that the screen always shows the most recent one
         if(ws_block_generic_deserialize(ws->data->generic ,ws_history_get_raw_data(ws->txrx->history,ws->txrx->idx_menu_chosen)) == SubGhzProtocolStatusOk) {
+            ws->data->rssi = rssi;
             logger_auto_append(ws->parentApp);
         } 
     }
@@ -210,6 +210,21 @@ WeatherStationContext* ws_init(void* app)
     ws_init_thread(ws);
 
     return ws;
+
+}
+void ws_free_data(WeatherStationContext* ws)
+{
+    //data storage
+    free(ws->data->generic);
+    furi_string_free(ws->data->protocol_name);
+    free(ws->data);    
+}
+void ws_init_data(WeatherStationContext* ws)
+{
+    //init data storage
+    ws->data = malloc(sizeof(WSReceiverInfoModel));
+    ws->data->generic = malloc(sizeof(WSBlockGeneric));
+    ws->data->protocol_name = furi_string_alloc();
 
 }
 void ws_free(WeatherStationContext* ws)

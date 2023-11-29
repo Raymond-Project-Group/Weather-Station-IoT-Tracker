@@ -5,7 +5,29 @@
 #include <furi_hal.h>
 #include <lib/flipper_format/flipper_format.h>
 #include <lib/subghz/types.h>
+typedef struct {
+    FuriString* item_str;
+    FlipperFormat* flipper_string;
+    uint8_t type;
+    uint32_t id;
+    SubGhzRadioPreset* preset;
+} WSHistoryItem;
 
+ARRAY_DEF(WSHistoryItemArray, WSHistoryItem, M_POD_OPLIST)
+
+#define M_OPL_WSHistoryItemArray_t() ARRAY_OPLIST(WSHistoryItemArray, M_POD_OPLIST)
+
+typedef struct {
+    WSHistoryItemArray_t data;
+} WSHistoryStruct;
+
+struct WSHistory {
+    uint32_t last_update_timestamp;
+    uint16_t last_index_write;
+    uint8_t code_last_hash_data;
+    FuriString* tmp_string;
+    WSHistoryStruct* history;
+};
 
 typedef struct WSHistory WSHistory;
 /** History state add key */

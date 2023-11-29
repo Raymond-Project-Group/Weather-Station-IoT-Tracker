@@ -8,29 +8,7 @@
 #define WS_HISTORY_MAX 50
 #define TAG "WSHistory"
 
-typedef struct {
-    FuriString* item_str;
-    FlipperFormat* flipper_string;
-    uint8_t type;
-    uint32_t id;
-    SubGhzRadioPreset* preset;
-} WSHistoryItem;
 
-ARRAY_DEF(WSHistoryItemArray, WSHistoryItem, M_POD_OPLIST)
-
-#define M_OPL_WSHistoryItemArray_t() ARRAY_OPLIST(WSHistoryItemArray, M_POD_OPLIST)
-
-typedef struct {
-    WSHistoryItemArray_t data;
-} WSHistoryStruct;
-
-struct WSHistory {
-    uint32_t last_update_timestamp;
-    uint16_t last_index_write;
-    uint8_t code_last_hash_data;
-    FuriString* tmp_string;
-    WSHistoryStruct* history;
-};
 
 WSHistory* ws_history_alloc(void) {
     WSHistory* instance = malloc(sizeof(WSHistory));
@@ -144,8 +122,7 @@ WSHistoryStateAddKey ws_history_add_to_history(WSHistory* instance, void* contex
     if(instance->last_index_write >= WS_HISTORY_MAX) return WSHistoryStateAddKeyOverflow;
 
     SubGhzProtocolDecoderBase* decoder_base = context;
-    if((instance->code_last_hash_data ==
-        subghz_protocol_decoder_base_get_hash_data(decoder_base)) &&
+    if((instance->code_last_hash_data == subghz_protocol_decoder_base_get_hash_data(decoder_base)) &&
        ((furi_get_tick() - instance->last_update_timestamp) < 500)) {
         instance->last_update_timestamp = furi_get_tick();
         return WSHistoryStateAddKeyTimeOut;

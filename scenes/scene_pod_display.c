@@ -11,7 +11,7 @@
 #include <applications/services/gui/modules/widget_elements/widget_element.h>
 #include <applications/services/gui/view.h>
 
-void pod_display_view_redraw_time(App* app, uint8_t tX, uint8_t tY) //Draw Time
+/*void pod_display_view_redraw_time(App* app, uint8_t tX, uint8_t tY) //Draw Time
 {
     int length;
     GpsStatus* data = app->gps_uart->status;
@@ -271,7 +271,7 @@ void pod_display_view_redraw_pressure(App* app, uint8_t pX, uint8_t pY) //Draw P
     snprintf(p, length, "%6.2f", (double)press); //stores temp in pressure
     widget_add_string_element(
         app->widget, pX + 9, pY + 13, AlignLeft, AlignBottom, FontPrimary, p);
-}
+}*/
 
 void pod_display_view_redraw_widget(App* app) {
     FURI_LOG_I(TAG, "Redrawing POD View Widgets");
@@ -354,15 +354,9 @@ void pod_display_view_redraw_widget(App* app) {
         {
             pod_widgets_redraw_satellites(app, satX, satY - app->canvas_y_offset);
         }
-    } else {
-        widget_add_string_element(
-            app->widget,
-            3,
-            3,
-            AlignLeft,
-            AlignBottom,
-            FontPrimary,
-            "Flipper Failed to Connect to BME280 or PWS");
+    } 
+    else {
+        widget_add_string_element(app->widget,3,24,AlignLeft,AlignTop,FontPrimary,"Flipper Failed to Connect to BME280 or PWS");
     }
 }
 static bool pod_display_input_callback(
@@ -430,7 +424,35 @@ void pod_display_scene_on_enter(void* context) {
 
     widget_reset(app->widget);
     app->canvas_y_offset = 0;
-    app->pws = ws_init(app);
+    if(!app->weather_station_initialized)
+    {
+        FURI_LOG_I(TAG, "PWS Not Running");
+        app->pws = ws_init(app);
+        app->weather_station_initialized = true;
+        if(app->pws->txrx->rx_key_state == WSRxKeyStateIDLE) {
+            ws_preset_init(app->pws, "AM650", subghz_setting_get_default_frequency(app->pws->setting), NULL, 0);
+            ws_history_reset(app->pws->txrx->history);
+            app->pws->txrx->rx_key_state = WSRxKeyStateStart;
+        }
+        if(app->pws->txrx->txrx_state == WSTxRxStateRx) {
+            ws_rx_end(app->pws);
+        }
+
+        if((app->pws->txrx->txrx_state == WSTxRxStateIDLE) || (app->pws->txrx->txrx_state == WSTxRxStateSleep)) {
+            ws_begin(app->pws,subghz_setting_get_preset_data_by_name(app->pws->setting, furi_string_get_cstr(app->pws->txrx->preset->name)));
+            ws_rx(app->pws, app->pws->txrx->preset->frequency);
+        }
+    }
+    else
+    {
+        FURI_LOG_I(TAG, "PWS Still Running");
+        //ws_init_data(app->pws);
+        FlipperFormat* fff = ws_history_get_raw_data(app->pws->txrx->history,app->pws->txrx->idx_menu_chosen);//Gets Flipper Format and Raw Data
+        flipper_format_rewind(fff);
+        flipper_format_read_string(fff, "Protocol", app->pws->data->protocol_name);//gets protocol name
+        ws_block_generic_deserialize(app->pws->data->generic ,fff);
+    }
+    /*app->pws = ws_init(app);
     app->weather_station_initialized = true;
 
     if(app->pws->txrx->rx_key_state == WSRxKeyStateIDLE) {
@@ -445,7 +467,7 @@ void pod_display_scene_on_enter(void* context) {
     if((app->pws->txrx->txrx_state == WSTxRxStateIDLE) || (app->pws->txrx->txrx_state == WSTxRxStateSleep)) {
         ws_begin(app->pws,subghz_setting_get_preset_data_by_name(app->pws->setting, furi_string_get_cstr(app->pws->txrx->preset->name)));
         ws_rx(app->pws, app->pws->txrx->preset->frequency);
-    }
+    }*/
 
     //Queue for events(Ticks or input)
     app->queue = furi_message_queue_alloc(8, sizeof(PodDisplayEvent));
@@ -539,8 +561,8 @@ void pod_display_scene_on_exit(void* context) {
     App* app = context;
     bme_free(app->bme280);
     gps_uart_disable(app->gps_uart);
-    ws_free(app->pws);
-    app->weather_station_initialized = false;
+    //ws_free(app->pws);
+    //app->weather_station_initialized = false;
     furi_message_queue_free(app->queue);
     furi_timer_free(app->timer);
     widget_reset(app->widget);

@@ -68,8 +68,10 @@ typedef struct { //To view examples of modules: https://brodan.biz/blog/a-visual
     bool weather_station_initialized; // ensure Weather Station Context points to actual station
     Storage* storage;
     Stream* file_stream; // output log stream
-    uint16_t
-        canvas_y_offset; //Used to note how far off the y-axis we are(scroll up and down functionality)
+    uint16_t sub_menu_size; //Used to note how large the sub menu is
+    bool clear_mem;  //Should we clear PWS Mem
+    uint8_t next_pws_scene; //PWS Selection is reused code, it can direct either to PWS Display or POD Display
+    uint16_t canvas_y_offset; //Used to note how far off the y-axis we are(scroll up and down functionality)
     PodDeltaState deltaState;
 } App;
 

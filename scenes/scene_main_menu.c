@@ -60,11 +60,15 @@ bool pod_main_menu_scene_on_event(void* context, SceneManagerEvent event)
             consumed = true;
             break;
         case Pod_Pws_Display_Selection_Event:
-            scene_manager_next_scene(app->scene_manager, Pod_Pws_Display_Scene);
+            FURI_LOG_I("PODS", "Entering PWS Selection Scene, PWS Next");
+            app->next_pws_scene = Pod_Pws_Display_Scene;
+            scene_manager_next_scene(app->scene_manager, Pod_Pws_Selection_Scene);
             consumed = true;
             break;
         case Pod_Display_Selection_Event:
-            scene_manager_next_scene(app->scene_manager, Pod_Display_Scene);
+            FURI_LOG_I("PODS", "Entering PWS Selection Scene, POD Next");
+            app->next_pws_scene = Pod_Display_Scene;
+            scene_manager_next_scene(app->scene_manager, Pod_Pws_Selection_Scene);
             consumed = true;
             break;
         case Pod_Pws_Transmit_Display_Selection_Event:

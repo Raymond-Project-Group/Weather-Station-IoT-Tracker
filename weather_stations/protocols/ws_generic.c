@@ -206,13 +206,14 @@ SubGhzProtocolStatus
             break;
         }
         instance->battery_low = (uint8_t)temp_data;
-
+        FURI_LOG_I("WSGEN","Bat:%u",instance->battery_low);
         if(!flipper_format_read_uint32(flipper_format, "Hum", (uint32_t*)&temp_data, 1)) {
             FURI_LOG_E(TAG, "Missing Humidity");
             res = SubGhzProtocolStatusErrorParserOthers;
             break;
         }
         instance->humidity = (uint8_t)temp_data;
+        FURI_LOG_I("WSGEN","Humid:%u",instance->humidity);
 
         if(!flipper_format_read_uint32(flipper_format, "Ts", (uint32_t*)&temp_data, 1)) {
             FURI_LOG_E(TAG, "Missing timestamp");

@@ -90,7 +90,7 @@ void pod_gpio_display_view_redraw_widget(App* app)
     }
     else
     {
-        widget_add_string_element(app->widget, 3, 3, AlignLeft, AlignBottom, FontPrimary, "Flipper Failed to Connect to BME280");
+        widget_add_string_element(app->widget, 3,24,AlignLeft,AlignTop,FontPrimary, "Flipper Failed to Connect to BME280");
     }
 }
 static bool pod_gpio_display_input_callback(InputEvent* input_event, void* context)//called when button is pressed
@@ -133,6 +133,7 @@ void pod_gpio_display_tick_callback(void* context)//every second this is called 
     furi_message_queue_put(queue, &event, 0);
     scene_manager_handle_tick_event(app->scene_manager);
 }
+
 void pod_gpio_display_scene_on_enter(void* context)
 {
     FURI_LOG_I(TAG, "GPIO Display Scene entered");

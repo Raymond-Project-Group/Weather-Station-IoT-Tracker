@@ -1,17 +1,12 @@
 #include "../flipper.h"
 #include "../app.h"
 #include "scenes.h"
-#include "scene_main_menu.h"
-#include "scene_settings.h"
-#include "scene_gpio_display.h"
-#include "scene_pws_display.h"
-#include "scene_pod_display.h"
-#include "scene_pws_transmit_display.h"
 /** collection of all scene on_enter handlers */
 void (*const pod_scene_on_enter_handlers[])(void*) = {
     pod_main_menu_scene_on_enter,
     pod_gpio_display_scene_on_enter,
     pod_pws_display_scene_on_enter,
+    pod_pws_selection_scene_on_enter,
     pod_display_scene_on_enter,
     pod_pws_transmit_display_scene_on_enter,
     pod_settings_scene_on_enter};
@@ -21,6 +16,7 @@ bool (*const pod_scene_on_event_handlers[])(void*, SceneManagerEvent) = {
     pod_main_menu_scene_on_event,
     pod_gpio_display_scene_on_event,
     pod_pws_display_scene_on_event,
+    pod_pws_selection_scene_on_event,
     pod_display_scene_on_event,
     pod_pws_transmit_display_scene_on_event,
     pod_settings_scene_on_event};
@@ -30,6 +26,7 @@ void (*const pod_scene_on_exit_handlers[])(void*) = {
     pod_main_menu_scene_on_exit,
     pod_gpio_display_scene_on_exit,
     pod_pws_display_scene_on_exit,
+    pod_pws_selection_scene_on_exit,
     pod_display_scene_on_exit,
     pod_pws_transmit_display_scene_on_exit,
     pod_settings_scene_on_exit};

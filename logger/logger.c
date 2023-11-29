@@ -38,9 +38,9 @@ void logger_stream_free(Stream* file_stream) {
 
 void logger_stream_append(App* app) {
     furi_mutex_acquire(app->mutex, FuriWaitForever);
-    append_bme_log(app->file_stream, app->bme280->data);
+    //append_bme_log(app->file_stream, app->bme280->data);
     stream_write_char(app->file_stream, ',');
-    append_gps_log(app->file_stream, app->gps_uart->status);
+    //append_gps_log(app->file_stream, app->gps_uart->status);
     stream_write_char(app->file_stream, ',');
     append_ws_log(app->file_stream, app->pws, !app->weather_station_initialized);
     stream_write_char(app->file_stream, '\n');

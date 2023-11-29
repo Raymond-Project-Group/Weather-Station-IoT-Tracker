@@ -15,8 +15,11 @@ void pod_pws_display_view_redraw_widget(App* app)
 {
     FURI_LOG_I(TAG, "Redrawing PWS View Widgets");
     widget_reset(app->widget);
+    FURI_LOG_I(TAG, "Redrawing PWS View Widgets1");
     widget_add_frame_element(app->widget,0,0,128,64,0); //Flipper screen size is 128x64, this draws a border around it
+    FURI_LOG_I(TAG, "Redrawing PWS View Widgets2");
     widget_add_frame_element(app->widget,126,app->canvas_y_offset+2,2,20,0);//Scroll Bar
+    FURI_LOG_I(TAG, "Redrawing PWS View Widgets3");
     if(app->canvas_y_offset == 0)//Banner
     {
         Icon* pwsBanner = (Icon*)&I_pws_display_banner_90x15;
@@ -27,6 +30,7 @@ void pod_pws_display_view_redraw_widget(App* app)
     {
 
         FURI_LOG_I(TAG, "Weather Stations active");
+        FURI_LOG_I(TAG, furi_string_get_cstr(app->pws->data->protocol_name));
 
         //Build the canvas
         uint8_t tempX = 2;
@@ -35,9 +39,9 @@ void pod_pws_display_view_redraw_widget(App* app)
         uint8_t humY = 23;
         uint8_t timerX = 2;
         uint8_t timerY = 43;
-        //uint8_t rssiX = 64;
-        //uint8_t rssiY = 43;
-        uint8_t timeX = 64;
+        uint8_t rssiX = 64;
+        uint8_t rssiY = 43;
+        /*uint8_t timeX = 64;
         uint8_t timeY = 43;
         uint8_t latX = 2;
         uint8_t latY = 63;
@@ -46,21 +50,24 @@ void pod_pws_display_view_redraw_widget(App* app)
         uint8_t altX = 2;
         uint8_t altY = 83;
         uint8_t satX = 64;
-        uint8_t satY = 83;
+        uint8_t satY = 83;*/
 
+        FURI_LOG_I(TAG, "Weather Stations 1");
         if(tempY > app->canvas_y_offset)//Should you draw temp?
         {
             pod_widgets_redraw_temperature(app,tempX,tempY - app->canvas_y_offset,Pod_Pws_Display_Scene, app->deltaState);
         }
+        FURI_LOG_I(TAG, "Weather Stations 2");
         if(humY > app->canvas_y_offset)//Should you draw humidity?
         {
             pod_widgets_redraw_humidity(app,humX,humY - app->canvas_y_offset,Pod_Pws_Display_Scene, app->deltaState);
         }
+        FURI_LOG_I(TAG, "Weather Stations 3");
         if(timerY > app->canvas_y_offset)//Should you draw timer?
         {
             pod_widgets_redraw_timer(app,timerX,timerY - app->canvas_y_offset);
         }
-        if(timeY > app->canvas_y_offset)//Should you draw time?
+        /*if(timeY > app->canvas_y_offset)//Should you draw time?
         {
             pod_widgets_redraw_time(app,timeX,timeY - app->canvas_y_offset);
         }
@@ -79,11 +86,12 @@ void pod_pws_display_view_redraw_widget(App* app)
         if(satY > app->canvas_y_offset)//Should you draw satellites?
         {
             pod_widgets_redraw_satellites(app,satX,satY - app->canvas_y_offset);
-        }
-        /*if(rssiY > app->canvas_y_offset)
+        }*/
+        if(rssiY > app->canvas_y_offset)
         {
             pod_widgets_redraw_rssi(app,rssiX,rssiY - app->canvas_y_offset);
-        }*/
+        }
+        FURI_LOG_I(TAG, "Weather Stations 4");
     }
     else
     {
@@ -135,20 +143,47 @@ void pod_pws_display_scene_on_enter(void* context)
 {
     FURI_LOG_I(TAG, "PWS Display Scene entered");
     App* app = context;
-    app->gps_uart = gps_uart_enable();
+    //app->gps_uart = gps_uart_enable();
 
     widget_reset(app->widget);
     app->canvas_y_offset = 0;
-    app->pws = ws_init(app);
-    app->weather_station_initialized = true;
+    //app->pws = ws_init(app);
+    //app->weather_station_initialized = true;
     //FuriString* str_buff;
     //str_buff = furi_string_alloc();
+    if(!app->weather_station_initialized)
+    {
+        FURI_LOG_I(TAG, "PWS Not Running");
+        app->pws = ws_init(app);
+        app->weather_station_initialized = true;
+        if(app->pws->txrx->rx_key_state == WSRxKeyStateIDLE) {
+            ws_preset_init(app->pws, "AM650", subghz_setting_get_default_frequency(app->pws->setting), NULL, 0);
+            ws_history_reset(app->pws->txrx->history);
+            app->pws->txrx->rx_key_state = WSRxKeyStateStart;
+        }
+        if(app->pws->txrx->txrx_state == WSTxRxStateRx) {
+            ws_rx_end(app->pws);
+        }
 
-    if(app->pws->txrx->rx_key_state == WSRxKeyStateIDLE) {
+        if((app->pws->txrx->txrx_state == WSTxRxStateIDLE) || (app->pws->txrx->txrx_state == WSTxRxStateSleep)) {
+            ws_begin(app->pws,subghz_setting_get_preset_data_by_name(app->pws->setting, furi_string_get_cstr(app->pws->txrx->preset->name)));
+            ws_rx(app->pws, app->pws->txrx->preset->frequency);
+        }
+    }
+    else
+    {
+        FURI_LOG_I(TAG, "PWS Still Running");
+        //ws_init_data(app->pws);
+        FlipperFormat* fff = ws_history_get_raw_data(app->pws->txrx->history,app->pws->txrx->idx_menu_chosen);//Gets Flipper Format and Raw Data
+        flipper_format_rewind(fff);
+        flipper_format_read_string(fff, "Protocol", app->pws->data->protocol_name);//gets protocol name
+        ws_block_generic_deserialize(app->pws->data->generic ,fff);
+    }
+    /*if(app->pws->txrx->rx_key_state == WSRxKeyStateIDLE) {
         ws_preset_init(app->pws, "AM650", subghz_setting_get_default_frequency(app->pws->setting), NULL, 0);
         ws_history_reset(app->pws->txrx->history);
         app->pws->txrx->rx_key_state = WSRxKeyStateStart;
-    }
+    }*/
 
     /*for(uint8_t i = 0; i < ws_history_get_item(app->pws->txrx->history); i++) {
         furi_string_reset(str_buff);
@@ -159,28 +194,34 @@ void pod_pws_display_scene_on_enter(void* context)
 
     //subghz_receiver_set_rx_callback(app->pws->txrx->receiver, pod_pws_subghz_general_callback, app);
 
-    if(app->pws->txrx->txrx_state == WSTxRxStateRx) {
+    /*if(app->pws->txrx->txrx_state == WSTxRxStateRx) {
         ws_rx_end(app->pws);
     }
 
     if((app->pws->txrx->txrx_state == WSTxRxStateIDLE) || (app->pws->txrx->txrx_state == WSTxRxStateSleep)) {
         ws_begin(app->pws,subghz_setting_get_preset_data_by_name(app->pws->setting, furi_string_get_cstr(app->pws->txrx->preset->name)));
         ws_rx(app->pws, app->pws->txrx->preset->frequency);
-    }
+    }*/
 
 
     //Queue for events(Ticks or input)
     app->queue = furi_message_queue_alloc(8,sizeof(PwsDisplayEvent));
+    FURI_LOG_I(TAG, "Queue Running");
 
     pod_pws_display_view_redraw_widget(app);
+    FURI_LOG_I(TAG, "Widgets Drawn");
     view_set_context(widget_get_view(app->widget), app);
+    FURI_LOG_I(TAG, "View Running");
     //view_set_draw_callback(widget_get_view(app->widget),pod_pws_display_render_callback);
     view_set_input_callback(widget_get_view(app->widget),pod_pws_display_input_callback);
+    FURI_LOG_I(TAG, "View Running");
     view_dispatcher_switch_to_view(app->view_dispatcher, Pod_Widget_View);
+    FURI_LOG_I(TAG, "Widget Running");
 
     // Update the screen fairly frequently (every 1000 milliseconds = 1 second.)
     app->timer = furi_timer_alloc(pod_pws_display_tick_callback, FuriTimerTypePeriodic, app);
     furi_timer_start(app->timer, 1000);
+    FURI_LOG_I(TAG, "Timer Running");
 }
 
 bool pod_pws_display_scene_on_event(void* context, SceneManagerEvent event)
@@ -191,9 +232,12 @@ bool pod_pws_display_scene_on_event(void* context, SceneManagerEvent event)
     //UNUSED(event);
     switch(event.type){
         case SceneManagerEventTypeTick:
-            FURI_LOG_I(TAG,"Scene Manager Event Type Tick");
+            FURI_LOG_I(TAG,"PWS Scene Manager Event Type Tick");
             PwsDisplayEvent pws_event;
+            if(app->queue){
+            FURI_LOG_I(TAG,"PWS Scene Manager Event Type Tick1");}
             if(furi_message_queue_get(app->queue, &pws_event, FuriWaitForever) == FuriStatusOk) {
+                FURI_LOG_I(TAG,"PWS Scene Manager Event Type Tick2");
                 switch(pws_event.type) {
                     case PWS_Display_Tick_Event:
                         FURI_LOG_I(TAG,"PWS Tick Event");
@@ -246,9 +290,10 @@ void pod_pws_display_scene_on_exit(void* context)
 {
     FURI_LOG_I(TAG, "Exiting PWS Display Scene");
     App* app = context;
-    ws_free(app->pws);
+    //ws_free_data(app->pws);//Usage Fault fixed when I clear PWS when leaving, naybe it will work when only data gets cleareed
+    //ws_free(app->pws);
     //gps_uart_disable(app->gps_uart);
-    app->weather_station_initialized = false;
+    //app->weather_station_initialized = false;
     furi_message_queue_free(app->queue);
     furi_timer_free(app->timer);
     widget_reset(app->widget);
