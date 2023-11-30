@@ -28,6 +28,14 @@ void pod_settings_change_pressure_units(VariableItem* pressureChoice)//update pr
     app->settings->pressure = index;
 }
 
+void pod_settings_change_coordinate_units(VariableItem* coordinateChoice)//update pressure settings
+{
+    App* app = variable_item_get_context(coordinateChoice);
+    uint8_t index = variable_item_get_current_value_index(coordinateChoice);
+    variable_item_set_current_value_text(coordinateChoice, CoordinateNames[index]);
+    app->settings->coordinates = index;
+}
+
 void pod_settings_change_time_units(VariableItem* timeChoice)//update time settings
 {
     App* app = variable_item_get_context(timeChoice);
@@ -63,6 +71,9 @@ void pod_settings_scene_on_enter(void* context) {
     
     VariableItem* press = variable_item_list_add(app->variable_item_list, "Pressure", Pressure_Count, pod_settings_change_pressure_units, app); //set to pressure
     variable_item_set_current_value_text(press, PressureNames[app->settings->pressure]); //update to reflect current pressure choice
+
+    VariableItem* coord = variable_item_list_add(app->variable_item_list, "Coordinates", Coordinate_Count, pod_settings_change_coordinate_units, app); //set to coordinates
+    variable_item_set_current_value_text(coord, CoordinateNames[app->settings->coordinates]); //update to reflect current coordinate choice
     
     VariableItem* time = variable_item_list_add(app->variable_item_list, "Time", Time_Count, pod_settings_change_time_units, app); //set to pressure
     variable_item_set_current_value_text(time, TimeNames[app->settings->time]); //update to reflect current pressure choice

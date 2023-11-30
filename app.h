@@ -5,6 +5,7 @@
 #include "./bme280/bme280.h"
 #include "./flipperzero-gps/gps_uart.h"
 #include "./weather_stations/weather_station.h"
+#include "./weather_stations/ws_transmit.h"
 
 typedef enum {
     POD_Neutral_Delta,
@@ -35,6 +36,14 @@ typedef enum {
     Pressure_Count,
 } PressureUnits;
 extern const char* PressureNames[Pressure_Count]; // = {"mbar","hPa","PSI","inHg","mmHg","Torr"};
+
+typedef enum {
+    Decimal,
+    DMS,
+    Coordinate_Count,
+} CoordinateUnits;
+extern const char* CoordinateNames[Coordinate_Count]; // = {"mbar","hPa","PSI","inHg","mmHg","Torr"};
+
 typedef enum { UTC, EST, Time_Count } TimeStandards;
 extern const char* TimeNames[Time_Count];
 
@@ -65,6 +74,7 @@ typedef struct {
     TemperatureUnits temperature;
     HumidityUnits humidity;
     PressureUnits pressure;
+    CoordinateUnits coordinates;
     TimeStandards time;
     LogModes logMode;
     BaudRates gps_baudrate;
@@ -90,6 +100,10 @@ typedef struct { //To view examples of modules: https://brodan.biz/blog/a-visual
     InitializationStates* initialization_states;
     Storage* storage;
     Stream* file_stream; // output log stream
+    Message* message; //Weather Station Transmission Module
+    uint16_t sub_menu_size; //Used to note how large the sub menu is
+    bool clear_mem;  //Should we clear PWS Mem
+    uint8_t next_pws_scene; //PWS Selection is reused code, it can direct either to PWS Display or POD Display
     uint16_t canvas_y_offset; //Used to note how far off the y-axis we are(scroll up and down functionality)
     PodDeltaState deltaState;
     OffsetState* offsetState;

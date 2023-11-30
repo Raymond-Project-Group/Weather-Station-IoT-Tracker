@@ -12,280 +12,12 @@
 #include <applications/services/gui/modules/widget_elements/widget_element.h>
 #include <applications/services/gui/view.h>
 
-void pod_display_view_redraw_time(App* app, uint8_t tX, uint8_t tY) //Draw Time
-{
-    int length;
-    GpsStatus* data = app->gps_uart->status;
-
-    widget_add_frame_element(
-        app->widget,
-        tX,
-        tY,
-        61,
-        19,
-        0); //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
-    Icon* timeWidgetUnits; //Time's units is the included in the icon symbol
-    int8_t hours = data->time_hours;
-    switch(app->settings->time) {
-    case UTC:
-        timeWidgetUnits = (Icon*)&I_time_UTC_11x13;
-        break;
-    case EST:
-        timeWidgetUnits = (Icon*)&I_time_EST_11x13;
-        hours -=
-            4; //This will might be added to unit conversions, but right now it doesnt need to be
-        if(hours < 0) {
-            hours += 24;
-        }
-        break;
-    default:
-        FURI_LOG_E(TAG, "Unrecognised time type in pod_display_view_redraw_widget");
-        app_quit(app);
-        return;
-    }
-    widget_add_icon_element(app->widget, tX + 2, tY + 3, timeWidgetUnits);
-    length = snprintf(NULL, 0, "%02d:%02d:%02d", hours, data->time_minutes, data->time_seconds) +
-             1; //finds num of digits in time
-    char t[length]; //creates string for time
-    if(data->time_seconds < 0) { // checks for illegal time
-        strcpy(t, "xx:xx:xx");
-    } else {
-        snprintf(
-            t,
-            length,
-            "%02d:%02d:%02d",
-            hours,
-            data->time_minutes,
-            data->time_seconds); //stores time in string
-    }
-    widget_add_string_element(
-        app->widget, tX + 14, tY + 13, AlignLeft, AlignBottom, FontPrimary, t);
-}
-
-void pod_display_view_redraw_latitude(App* app, uint8_t lX, uint8_t lY) //Draw Latitude
-{
-    int length;
-    GpsStatus* data = app->gps_uart->status;
-
-    widget_add_frame_element(
-        app->widget,
-        lX,
-        lY,
-        61,
-        19,
-        0); //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
-    Icon* latitudeUnitWidget = (Icon*)&I_latitude_N_10x15;
-    widget_add_icon_element(app->widget, lX + 48, lY + 2, latitudeUnitWidget);
-    length =
-        snprintf(NULL, 0, "%7.4f", (double)data->latitude) + 1; //finds num of digits in latitude
-    char t[length]; //creates string for latitude
-    snprintf(t, length, "%7.4f", (double)data->latitude); //stores latitude in string
-    widget_add_string_element(
-        app->widget, lX + 2, lY + 13, AlignLeft, AlignBottom, FontPrimary, t);
-}
-
-void pod_display_view_redraw_longitude(App* app, uint8_t lX, uint8_t lY) //Draw Longitude
-{
-    int length;
-    GpsStatus* data = app->gps_uart->status;
-
-    widget_add_frame_element(
-        app->widget,
-        lX,
-        lY,
-        61,
-        19,
-        0); //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
-    Icon* longitudeUnitWidget = (Icon*)&I_longitude_W_10x15;
-    widget_add_icon_element(app->widget, lX + 48, lY + 2, longitudeUnitWidget);
-    length =
-        snprintf(NULL, 0, "%7.4f", (double)data->longitude) + 1; //finds num of digits in longitude
-    char t[length]; //creates string for longitude
-    snprintf(t, length, "%7.4f", (double)data->longitude); //stores longitude in string
-    widget_add_string_element(
-        app->widget, lX + 2, lY + 13, AlignLeft, AlignBottom, FontPrimary, t);
-}
-
-void pod_display_view_redraw_altitude(App* app, uint8_t aX, uint8_t aY) //Draw Altitude
-{
-    int length;
-    GpsStatus* data = app->gps_uart->status;
-
-    widget_add_frame_element(
-        app->widget,
-        aX,
-        aY,
-        61,
-        19,
-        0); //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
-    Icon* altitudeWidget = (Icon*)&I_altitude_10x11;
-    widget_add_icon_element(app->widget, aX + 2, aY + 4, altitudeWidget);
-    Icon* altitudeUnitWidget = (Icon*)&I_m_10x15;
-    widget_add_icon_element(app->widget, aX + 50, aY + 2, altitudeUnitWidget);
-    length =
-        snprintf(NULL, 0, "%.1f", (double)data->altitude) + 1; //finds num of digits in altitude
-    char t[length]; //creates string for altitude
-    snprintf(t, length, "%.1f", (double)data->altitude); //stores altitude in string
-    widget_add_string_element(
-        app->widget, aX + 14, aY + 13, AlignLeft, AlignBottom, FontPrimary, t);
-}
-
-void pod_display_view_redraw_satellites(App* app, uint8_t sX, uint8_t sY) //Draw Satellites
-{
-    int length;
-    GpsStatus* data = app->gps_uart->status;
-
-    widget_add_frame_element(
-        app->widget,
-        sX,
-        sY,
-        61,
-        19,
-        0); //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
-    Icon* satelliteWidget =
-        (Icon*)&I_satellites_15x15; //Temperature's units is the only one included in the icon symbol
-    widget_add_icon_element(app->widget, sX + 2, sY + 3, satelliteWidget);
-    length =
-        snprintf(NULL, 0, "%d", data->satellites_tracked) + 1; //finds num of digits in satellites
-    char t[length]; //creates string for satellites
-    snprintf(t, length, "%d", data->satellites_tracked); //stores satellites in string
-    widget_add_string_element(
-        app->widget, sX + 20, sY + 13, AlignLeft, AlignBottom, FontPrimary, t);
-}
-
-void pod_display_view_redraw_temperature(App* app, uint8_t tX, uint8_t tY) //Draw Temperature
-{
-    int length;
-    Bme280Data* data = app->bme280->data;
-
-    widget_add_frame_element(
-        app->widget,
-        tX,
-        tY,
-        61,
-        19,
-        0); //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
-    //Temperature, Humidity, and Pressure Units can change off settings
-    Icon* temperatureUnitWidget; //Temperature's units is the only one included in the icon symbol
-    float tempGPIO = data->temperature;
-    switch(app->settings->temperature) {
-    case F:
-        temperatureUnitWidget = (Icon*)&I_temp_F_11x14;
-        tempGPIO = temperature_conversion(C, F, tempGPIO);
-        break;
-    case C:
-        temperatureUnitWidget = (Icon*)&I_temp_C_11x14;
-        break;
-    case K:
-        temperatureUnitWidget = (Icon*)&I_temp_K_11x14;
-        tempGPIO = temperature_conversion(C, K, tempGPIO);
-        break;
-    default:
-        FURI_LOG_E(TAG, "Unrecognised temperature type in pod_display_view_redraw_widget");
-        app_quit(app);
-        return;
-    }
-    widget_add_icon_element(app->widget, tX + 2, tY + 3, temperatureUnitWidget);
-    length = snprintf(NULL, 0, "%6.2f", (double)tempGPIO) + 1; //finds num of digits in temperature
-    char t[length]; //creates string for temp
-    snprintf(t, length, "%6.2f", (double)tempGPIO); //stores temp in string
-    widget_add_string_element(
-        app->widget, tX + 14, tY + 13, AlignLeft, AlignBottom, FontPrimary, t);
-}
-
-void pod_display_view_redraw_humidity(App* app, uint8_t hX, uint8_t hY) //Draw Humidity
-{
-    int length;
-    Bme280Data* data = app->bme280->data;
-
-    widget_add_frame_element(app->widget, hX, hY, 61, 19, 0);
-    //Humidity Icon and Pressure Icon are static, units then get put to the right
-    Icon* humidityWidget = (Icon*)&I_hum_9x15;
-    widget_add_icon_element(app->widget, hX + 2, hY + 2, humidityWidget);
-    //Temperature, Humidity, and Pressure Units can change off settings
-    Icon* humidityUnitWidget;
-    float humid = data->humidity;
-    switch(app->settings->humidity) {
-    case relative:
-        humidityUnitWidget = (Icon*)&I_percent_11x15;
-        break;
-    case absolute:
-        humidityUnitWidget = (Icon*)&I_g_m3_11x15;
-        humid = humidity_conversion(relative, C, absolute, humid, data->temperature);
-        break;
-    default:
-        FURI_LOG_E(TAG, "Unrecognised humidity type in pod_display_view_redraw_widget");
-        app_quit(app);
-        return;
-    }
-    widget_add_icon_element(app->widget, hX + 49, hY + 2, humidityUnitWidget);
-    length = snprintf(NULL, 0, "%6.2f", (double)humid) + 1; //finds num of digits in humidity
-    char h[length]; //creates string for humidity
-    snprintf(h, length, "%6.2f", (double)humid); //stores humidity in string
-    widget_add_string_element(
-        app->widget, hX + 11, hY + 13, AlignLeft, AlignBottom, FontPrimary, h);
-}
-
-void pod_display_view_redraw_pressure(App* app, uint8_t pX, uint8_t pY) //Draw Pressure
-{
-    int length;
-    Bme280Data* data = app->bme280->data;
-    widget_add_frame_element(app->widget, pX, pY, 61, 19, 0);
-
-    //Humidity Icon and Pressure Icon are static, units then get put to the right
-    Icon* pressureWidget = (Icon*)&I_pressure_7x13;
-    widget_add_icon_element(app->widget, pX + 2, pY + 4, pressureWidget);
-    //Temperature, Humidity, and Pressure Units can change off settings
-    Icon* pressureUnitWidget;
-    float press = data->pressure;
-    switch(app->settings->pressure) {
-    case mbar:
-        pressureUnitWidget = (Icon*)&I_mbar_15x15;
-        break;
-    case hPa:
-        pressureUnitWidget = (Icon*)&I_hpa_15x15;
-        break;
-    case Torr:
-        pressureUnitWidget = (Icon*)&I_torr_15x15;
-        press = pressure_conversion(mbar, Torr, press);
-        break;
-    case PSI:
-        pressureUnitWidget = (Icon*)&I_PSI_15x15;
-        press = pressure_conversion(mbar, PSI, press);
-        break;
-    case mmHg:
-        pressureUnitWidget = (Icon*)&I_mm_hg_15x15;
-        press = pressure_conversion(mbar, mmHg, press);
-        break;
-    case inHg:
-        pressureUnitWidget = (Icon*)&I_in_hg_15x15;
-        press = pressure_conversion(mbar, inHg, press);
-        break;
-    default:
-        FURI_LOG_E(TAG, "Unrecognised pressure type in pod_display_view_redraw_widget");
-        app_quit(app);
-        return;
-    }
-    widget_add_icon_element(app->widget, pX + 45, pY + 2, pressureUnitWidget);
-    length = snprintf(NULL, 0, "%6.2f", (double)press) + 1; //finds num of digits in pressure
-    char p[length]; //creates pressure for temp
-    snprintf(p, length, "%6.2f", (double)press); //stores temp in pressure
-    widget_add_string_element(
-        app->widget, pX + 9, pY + 13, AlignLeft, AlignBottom, FontPrimary, p);
-}
-
 void pod_display_view_redraw_widget(App* app) {
     FURI_LOG_I(TAG, "Redrawing POD View Widgets");
     widget_reset(app->widget);
-    widget_add_frame_element(
-        app->widget,
-        0,
-        0,
-        128,
-        64,
-        0); //Flipper screen size is 128x64, this draws a border around it
-    widget_add_frame_element(app->widget, 126, app->canvas_y_offset + 2, 2, 15, 0); //Scroll Bar
-    if(app->canvas_y_offset == 0) //Banner
+    widget_add_frame_element(app->widget,0,0,128,64,0); //Flipper screen size is 128x64, this draws a border around it
+    widget_add_frame_element(app->widget, 126, (15*app->canvas_y_offset)/20 + 2, 2, 15, 0); //Scroll Bar
+    if(app->canvas_y_offset == 0)//Banner
     {
         Icon* podBanner = (Icon*)&I_pod_display_banner_top_90x15;
         widget_add_icon_element(app->widget, 18, 5, podBanner);
@@ -365,15 +97,9 @@ void pod_display_view_redraw_widget(App* app) {
         {
             pod_widgets_redraw_satellites(app, satX, satY - app->canvas_y_offset);
         }
-    } else {
-        widget_add_string_element(
-            app->widget,
-            3,
-            3,
-            AlignLeft,
-            AlignBottom,
-            FontPrimary,
-            "Flipper Failed to Connect to BME280 or PWS");
+    } 
+    else {
+        widget_add_string_element(app->widget,3,24,AlignLeft,AlignTop,FontPrimary,"Flipper Failed to Connect to BME280 or PWS");
     }
 }
 static bool pod_display_input_callback(
@@ -393,9 +119,7 @@ static bool pod_display_input_callback(
         app->canvas_y_offset -= 20;
         view_dispatcher_send_custom_event(app->view_dispatcher, POD_Display_Scroll_Event);
         consumed = true;
-    } else if(
-        event.input.type == InputTypeShort && event.input.key == InputKeyDown &&
-        app->canvas_y_offset < 60) {
+    } else if(event.input.type == InputTypeShort && event.input.key == InputKeyDown &&app->canvas_y_offset < 60) {
         app->canvas_y_offset += 20;
         view_dispatcher_send_custom_event(app->view_dispatcher, POD_Display_Scroll_Event);
         consumed = true;
@@ -441,10 +165,40 @@ void pod_display_scene_on_enter(void* context) {
     app->canvas_y_offset = 0;
     app->gps_uart = simple_gps_uart_enable(app);
     app->bme280 = bme_init();
-    app->pws = ws_init(app);
-    app->initialization_states->pws_initialized = true;
+
     app->initialization_states->gps_initialized = true;
     app->initialization_states->bme_initialized = true;
+
+    if(!app->initialization_states->pws_initialized)
+    {
+        FURI_LOG_I(TAG, "PWS Not Running");
+        app->pws = ws_init(app);
+        app->initialization_states->pws_initialized = true;
+        if(app->pws->txrx->rx_key_state == WSRxKeyStateIDLE) {
+            ws_preset_init(app->pws, "AM650", subghz_setting_get_default_frequency(app->pws->setting), NULL, 0);
+            ws_history_reset(app->pws->txrx->history);
+            app->pws->txrx->rx_key_state = WSRxKeyStateStart;
+        }
+        if(app->pws->txrx->txrx_state == WSTxRxStateRx) {
+            ws_rx_end(app->pws);
+        }
+
+        if((app->pws->txrx->txrx_state == WSTxRxStateIDLE) || (app->pws->txrx->txrx_state == WSTxRxStateSleep)) {
+            ws_begin(app->pws,subghz_setting_get_preset_data_by_name(app->pws->setting, furi_string_get_cstr(app->pws->txrx->preset->name)));
+            ws_rx(app->pws, app->pws->txrx->preset->frequency);
+        }
+    }
+    else
+    {
+        FURI_LOG_I(TAG, "PWS Still Running");
+        //ws_init_data(app->pws);
+        FlipperFormat* fff = ws_history_get_raw_data(app->pws->txrx->history,app->pws->txrx->idx_menu_chosen);//Gets Flipper Format and Raw Data
+        flipper_format_rewind(fff);
+        flipper_format_read_string(fff, "Protocol", app->pws->data->protocol_name);//gets protocol name
+        ws_block_generic_deserialize(app->pws->data->generic ,fff);
+    }
+    /*app->pws = ws_init(app);
+    app->weather_station_initialized = true;
 
     if(app->pws->txrx->rx_key_state == WSRxKeyStateIDLE) {
         ws_preset_init(
@@ -463,7 +217,7 @@ void pod_display_scene_on_enter(void* context) {
             subghz_setting_get_preset_data_by_name(
                 app->pws->setting, furi_string_get_cstr(app->pws->txrx->preset->name)));
         ws_rx(app->pws, app->pws->txrx->preset->frequency);
-    }
+    }*/
 
     //Queue for events(Ticks or input)
     app->queue = furi_message_queue_alloc(8, sizeof(PodDisplayEvent));
@@ -555,12 +309,12 @@ bool pod_display_scene_on_event(void* context, SceneManagerEvent event) {
 void pod_display_scene_on_exit(void* context) {
     FURI_LOG_I(TAG, "Exiting POD POD_Display Scene");
     App* app = context;
-    ws_free(app->pws);
+
     bme_free(app->bme280);
     gps_uart_disable(app->gps_uart);
-    app->initialization_states->pws_initialized = false;
     app->initialization_states->bme_initialized = false;
     app->initialization_states->gps_initialized = false;
+
     furi_message_queue_free(app->queue);
     furi_timer_free(app->timer);
     widget_reset(app->widget);

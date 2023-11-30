@@ -76,6 +76,9 @@ SubGhzProtocolStatus ws_block_generic_deserialize_check_count_bit(
     FlipperFormat* flipper_format,
     uint16_t count_bit);
 
+//Finds even parity
+uint8_t ws_get_even_parity(uint n);
+
 #ifdef __cplusplus
 }
 #endif

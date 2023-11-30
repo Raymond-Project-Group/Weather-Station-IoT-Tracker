@@ -7,6 +7,7 @@
 const char* TemperatureNames[Temp_Count] = {"F", "C", "K"};
 const char* HumidityNames[Humid_Count] = {"Relative", "Absolute"};
 const char* PressureNames[Pressure_Count] = {"mbar", "hPa", "PSI", "inHg", "mmHg", "Torr"};
+const char* CoordinateNames[Coordinate_Count] = {"Degrees", "DMS"};
 const char* TimeNames[Time_Count] = {"UTC", "EST"};
 const char* LogModeNames[Log_Mode_Count] = {"Auto", "Manual"};
 const char* GPSBaudRateLabels[Baud_Rates_Count] = { "4800", "9600", "19200", "38400", "57600", "115200"};

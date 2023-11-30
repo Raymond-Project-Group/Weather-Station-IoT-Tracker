@@ -94,15 +94,10 @@ void pod_gpio_display_view_redraw_widget(App* app) {
         {
             pod_widgets_redraw_satellites(app, satX, satY - app->canvas_y_offset);
         }
-    } else {
-        widget_add_string_element(
-            app->widget,
-            3,
-            3,
-            AlignLeft,
-            AlignBottom,
-            FontPrimary,
-            "Flipper Failed to Connect to BME280");
+    }
+    else
+    {
+        widget_add_string_element(app->widget, 3,24,AlignLeft,AlignTop,FontPrimary, "Flipper Failed to Connect to BME280");
     }
 }
 static bool pod_gpio_display_input_callback(

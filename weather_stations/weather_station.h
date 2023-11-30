@@ -22,6 +22,7 @@ typedef enum {
 typedef struct {
     FuriString* protocol_name;
     WSBlockGeneric* generic;
+    float rssi;
 } WSReceiverInfoModel;
 
 typedef struct {
@@ -62,6 +63,8 @@ uint32_t ws_rx(WeatherStationContext* ws, uint32_t frequency);
 void ws_idle(WeatherStationContext* ws);
 void ws_rx_end(WeatherStationContext* ws);
 void ws_sleep(WeatherStationContext* ws);
+void ws_free_data(WeatherStationContext* ws);
+void ws_init_data(WeatherStationContext* ws);
 
 void ws_init_thread(WeatherStationContext* ws); 
 void ws_deinit_thread(WeatherStationContext* ws);

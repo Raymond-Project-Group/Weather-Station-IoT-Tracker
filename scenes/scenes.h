@@ -3,15 +3,21 @@
 
 #include "../flipper.h"
 #include "scene_main_menu.h"
-#include "scene_gpio_display.h"
 #include "scene_settings.h"
+#include "scene_gpio_display.h"
+#include "scene_pws_selection_menu.h"
+#include "scene_pws_display.h"
+#include "scene_pod_display.h"
+#include "scene_pws_transmit_display.h"
 
 //Current Scene
 typedef enum {
     Pod_Main_Menu_Scene,
     Pod_Gpio_Display_Scene,
     Pod_Pws_Display_Scene,
+    Pod_Pws_Selection_Scene,
     Pod_Display_Scene,
+    Pod_Pws_Transmit_Display_Scene,
     Pod_Settings_Scene,
     Pod_Settings_Hub_Scene,
     Pod_Offsets_Scene,
