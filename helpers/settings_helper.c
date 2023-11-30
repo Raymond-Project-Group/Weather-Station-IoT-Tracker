@@ -31,23 +31,16 @@ AppSettings* app_settings_setup(Storage* storage) {
 
         // in event no settings file is created
         FURI_LOG_I(TAG, "No settings file exists, loading defaults");
-
-    	settings->temperature = 1;
-    	settings->humidity = 0;
-    	settings->pressure = 0;
-    	settings->time = 0;
-    	settings->logMode = 0;
-        settings->gps_baudrate = 0;
-        settings->temp_offset = 0.0f;
-        settings->humidity_offset = 0.0f;
-        settings->pressure_offset = 0.0f;
+        default_settings(settings);
 
 
     } else {
 
         FURI_LOG_I(TAG, "Loading settings from file");
         stream_read(file_stream, (uint8_t*) settings, sizeof(AppSettings));
-        FURI_LOG_I(TAG, "%d, %d, %d, %d, %d, %d, %f, %f, %f", settings->temperature, settings->humidity, settings->pressure, settings->time, settings->logMode, settings->gps_baudrate, (double) settings->temp_offset, (double) settings->humidity_offset, (double) settings->pressure_offset);
+
+        if (!validate_settings(settings))
+            default_settings(settings);
 
     }
 
@@ -103,4 +96,41 @@ float get_calibrated_humidity(App* app) {
 
 float get_calibrated_pressure(App* app) {
     return app->bme280->data->pressure + app->settings->pressure_offset;
+}
+
+bool validate_settings(AppSettings* settings) {
+
+    if (settings->temperature >= Temp_Count)
+        return false;
+
+    if (settings->humidity >= Humid_Count)
+        return false;
+
+    if (settings->pressure >= Pressure_Count)
+        return false;
+
+    if (settings->time >= Time_Count)
+        return false;
+
+    if (settings->logMode >= Log_Mode_Count)
+        return false;
+
+    if (settings->gps_baudrate >= Baud_Rates_Count)
+        return false;
+
+    return true;
+}
+
+void default_settings(AppSettings* settings) {
+
+    	settings->temperature = 1;
+    	settings->humidity = 0;
+    	settings->pressure = 0;
+    	settings->time = 0;
+    	settings->logMode = 0;
+        settings->gps_baudrate = 0;
+        settings->temp_offset = 0.0f;
+        settings->humidity_offset = 0.0f;
+        settings->pressure_offset = 0.0f;
+
 }
