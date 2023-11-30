@@ -114,7 +114,7 @@ void append_ws_log(Stream* file_stream, App* app, uint16_t idx, float rssi, bool
 
     // prevents accessing junk data
     if(override) {
-        stream_write_cstring(file_stream, ",,,,,");
+        stream_write_cstring(file_stream, ",,,,,,");
         return;
     }
 
@@ -129,7 +129,7 @@ void append_ws_log(Stream* file_stream, App* app, uint16_t idx, float rssi, bool
 
     ws_block_generic_deserialize(ws_data,fff);
 
-    stream_write_format(file_stream, "%f, %f, %ld, %s, %ld, %f", (double) ws_data->temp, (double) ws_data->humidity, ws_data->timestamp, furi_string_get_cstr(protocol), ws_data->id, (double) rssi);
+    stream_write_format(file_stream, "%f, %f, %ld, %s, %ld, %ld, %f", (double) ws_data->temp, (double) ws_data->humidity, ws_data->timestamp, furi_string_get_cstr(protocol), ws_data->id, ws_history_get_frequency(app->pws->txrx->history,idx), (double) rssi);
     
     furi_string_free(protocol);
     free(ws_data);
