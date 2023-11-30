@@ -47,6 +47,15 @@ extern const int GPSBaudRates[6];
 
 
 typedef struct {
+    bool edit;
+    uint8_t selection;
+    int digit;
+    int rawTemp;
+    int rawHum;
+    int rawPres;
+} OffsetState;
+
+typedef struct {
     bool bme_initialized;
     bool gps_initialized;
     bool pws_initialized;
@@ -83,6 +92,7 @@ typedef struct { //To view examples of modules: https://brodan.biz/blog/a-visual
     Stream* file_stream; // output log stream
     uint16_t canvas_y_offset; //Used to note how far off the y-axis we are(scroll up and down functionality)
     PodDeltaState deltaState;
+    OffsetState* offsetState;
 } App;
 
 App* app_alloc();

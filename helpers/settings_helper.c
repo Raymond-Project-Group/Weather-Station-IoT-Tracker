@@ -92,3 +92,15 @@ void app_settings_close(AppSettings* settings, Storage* storage) {
 GpsUart* simple_gps_uart_enable(App* app) {
     return gps_uart_enable(GPSBaudRates[app->settings->gps_baudrate]);
 }
+
+float get_calibrated_temperature(App* app) {
+    return app->bme280->data->temperature + app->settings->temp_offset;
+}
+
+float get_calibrated_humidity(App* app) {
+    return app->bme280->data->humidity + app->settings->humidity_offset;
+}
+
+float get_calibrated_pressure(App* app) {
+    return app->bme280->data->pressure + app->settings->pressure_offset;
+}

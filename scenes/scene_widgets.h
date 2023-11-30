@@ -14,4 +14,8 @@ void pod_widgets_redraw_latitude(App* app,uint8_t lX, uint8_t lY); //Draw Latitu
 void pod_widgets_redraw_time(App* app,uint8_t tX, uint8_t tY); //Draw Time
 void pod_widgets_redraw_timer(App* app,uint8_t tX, uint8_t tY); //Draw Timer
 
+void pod_widgets_redraw_temperature_offset(App* app, uint8_t x, uint8_t y);
+void pod_widgets_redraw_humidity_offset(App* app, uint8_t x, uint8_t y);
+void pod_widgets_redraw_pressure_offset(App* app, uint8_t x, uint8_t y);
+
 #endif

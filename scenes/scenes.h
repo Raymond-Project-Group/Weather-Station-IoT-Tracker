@@ -13,6 +13,8 @@ typedef enum {
     Pod_Pws_Display_Scene,
     Pod_Display_Scene,
     Pod_Settings_Scene,
+    Pod_Settings_Hub_Scene,
+    Pod_Offsets_Scene,
     Pod_Scene_Count,
 } PodScenes;
 

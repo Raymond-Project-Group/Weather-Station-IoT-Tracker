@@ -63,7 +63,7 @@ bool pod_main_menu_scene_on_event(void* context, SceneManagerEvent event)
             consumed = true;
             break;
         case Pod_Settings_Selection_Event:
-            scene_manager_next_scene(app->scene_manager, Pod_Settings_Scene);
+            scene_manager_next_scene(app->scene_manager, Pod_Settings_Hub_Scene);
             consumed = true;
             break;
         }

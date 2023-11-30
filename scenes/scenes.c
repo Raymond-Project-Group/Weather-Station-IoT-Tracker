@@ -6,13 +6,17 @@
 #include "scene_gpio_display.h"
 #include "scene_pws_display.h"
 #include "scene_pod_display.h"
+#include "scene_settings_hub.h"
+#include "scene_offsets_display.h"
 /** collection of all scene on_enter handlers */
 void (*const pod_scene_on_enter_handlers[])(void*) = {
     pod_main_menu_scene_on_enter,
     pod_gpio_display_scene_on_enter,
     pod_pws_display_scene_on_enter,
     pod_display_scene_on_enter,
-    pod_settings_scene_on_enter};
+    pod_settings_scene_on_enter,
+    pod_settings_hub_scene_on_enter,
+    offsets_display_scene_on_enter};
 
 /** collection of all scene on event handlers */
 bool (*const pod_scene_on_event_handlers[])(void*, SceneManagerEvent) = {
@@ -20,7 +24,9 @@ bool (*const pod_scene_on_event_handlers[])(void*, SceneManagerEvent) = {
     pod_gpio_display_scene_on_event,
     pod_pws_display_scene_on_event,
     pod_display_scene_on_event,
-    pod_settings_scene_on_event};
+    pod_settings_scene_on_event,
+    pod_settings_hub_scene_on_event,
+    offsets_display_scene_on_event};
 
 /** collection of all scene on exit handlers */
 void (*const pod_scene_on_exit_handlers[])(void*) = {
@@ -28,7 +34,9 @@ void (*const pod_scene_on_exit_handlers[])(void*) = {
     pod_gpio_display_scene_on_exit,
     pod_pws_display_scene_on_exit,
     pod_display_scene_on_exit,
-    pod_settings_scene_on_exit};
+    pod_settings_scene_on_exit,
+    pod_settings_hub_scene_on_exit,
+    offsets_display_scene_on_exit};
 
 /** collection of all on_enter, on_event, on_exit handlers */
 const SceneManagerHandlers pod_scene_manager_handlers = {

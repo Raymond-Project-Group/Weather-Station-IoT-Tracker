@@ -3,6 +3,7 @@
 #include "../logger/logger.h"
 #include "../unit_conversion/unit_conversion.h"
 #include "../weather_stations/weather_station.h"
+#include "../helpers/settings_helper.h"
 #include "scene_widgets.h"
 #include <applications/services/gui/modules/widget.h>
 #include <applications/services/gui/modules/widget_elements/widget_element.h>
@@ -24,6 +25,7 @@ void pod_widgets_redraw_timer(App* app,uint8_t tX, uint8_t tY) //Draw Timer
     snprintf(t,length,"%d sec",(int)curr_ts-(int)data->timestamp);//stores time since last transmission
     widget_add_string_element(app->widget,tX+14,tY+13,AlignLeft,AlignBottom,FontPrimary,t);
 }
+
 
 void pod_widgets_redraw_time(App* app,uint8_t tX, uint8_t tY) //Draw Time
 {
@@ -133,8 +135,7 @@ void pod_widgets_redraw_temperature(App* app,uint8_t tX, uint8_t tY, int page, P
         float temp = 0.0/0.0;
         if(page==Pod_Gpio_Display_Scene)
         {
-            Bme280Data* data = app->bme280->data;
-            temp = data->temperature;
+            temp = get_calibrated_temperature(app);
         }
         else if (page == Pod_Pws_Display_Scene)
         {
@@ -173,8 +174,7 @@ void pod_widgets_redraw_temperature(App* app,uint8_t tX, uint8_t tY, int page, P
         float tempGPIO = 0.0/0.0;
         float tempPWS = 0.0/0.0;
 
-        Bme280Data* dataGPIO = app->bme280->data;
-        tempGPIO = dataGPIO->temperature;
+        tempGPIO = get_calibrated_temperature(app);
         WSBlockGeneric* dataPWS = app->pws->data->generic;
         tempPWS = dataPWS->temp;
 
@@ -235,9 +235,8 @@ void pod_widgets_redraw_humidity(App* app,uint8_t hX, uint8_t hY,int page, PodDe
         float temp = 0.0/0.0;
         if(page==Pod_Gpio_Display_Scene)
         {
-            Bme280Data* data = app->bme280->data;
-            humid = data->humidity;
-            temp = data->temperature;
+            humid = get_calibrated_humidity(app);
+            temp = get_calibrated_temperature(app);
         }
         else if (page == Pod_Pws_Display_Scene)
         {
@@ -280,9 +279,8 @@ void pod_widgets_redraw_humidity(App* app,uint8_t hX, uint8_t hY,int page, PodDe
         float tempGPIO = 0.0/0.0;
         float tempPWS = 0.0/0.0;
 
-        Bme280Data* dataGPIO = app->bme280->data;
-        humidGPIO = dataGPIO->humidity;
-        tempGPIO = dataGPIO->temperature;
+        humidGPIO = get_calibrated_humidity(app);
+        tempGPIO = get_calibrated_temperature(app);
         WSBlockGeneric* dataPWS = app->pws->data->generic;
         humidPWS = dataPWS->humidity*1.0;
         tempPWS = dataPWS->temp;
@@ -337,7 +335,6 @@ void pod_widgets_redraw_humidity(App* app,uint8_t hX, uint8_t hY,int page, PodDe
 void pod_widgets_redraw_pressure(App* app, uint8_t pX, uint8_t pY) //Draw Pressure
 {
     int length;
-    Bme280Data* data = app->bme280->data;
     widget_add_frame_element(app->widget,pX,pY,61,19,0);  
     
     //Humidity Icon and Pressure Icon are static, units then get put to the right
@@ -345,7 +342,7 @@ void pod_widgets_redraw_pressure(App* app, uint8_t pX, uint8_t pY) //Draw Pressu
     widget_add_icon_element(app->widget,pX+2,pY+4,pressureWidget);
     //Temperature, Humidity, and Pressure Units can change off settings
     Icon* pressureUnitWidget;
-    float press = data->pressure;
+    float press = get_calibrated_pressure(app);
     switch(app->settings->pressure)
     {
         case mbar:
@@ -380,4 +377,130 @@ void pod_widgets_redraw_pressure(App* app, uint8_t pX, uint8_t pY) //Draw Pressu
     char p[length];//creates pressure for temp
     snprintf(p,length,"%6.2f",(double)press);//stores temp in pressure
     widget_add_string_element(app->widget,pX+9,pY+13,AlignLeft,AlignBottom,FontPrimary,p);
+}
+
+
+void pod_widgets_redraw_temperature_offset(App* app, uint8_t x, uint8_t y) {
+    Icon* select = (Icon *)&I_selected_5x17;
+    int radius = 0;
+    int selection = 0;
+    if(app->offsetState->selection == 0)
+    {
+        radius = 3;
+        if(app->offsetState->edit)
+        {
+            switch (app->offsetState->digit)
+            {
+                case 3:
+                    selection = 13;
+                    break;
+                case 2:
+                    selection = 20;
+                    break;
+                case 1:
+                    selection = 29;
+                    break;
+                case 0:
+                    selection = 35;
+                    break;
+                default:
+                    break;
+            }
+            widget_add_icon_element(app->widget,x+selection,y+1,select);
+        }
+    }
+
+    widget_add_frame_element(app->widget,x,y,123,19,radius);  
+    //Temperature, Humidity, and Pressure Units can change off settings
+    Icon* unitWidget = (Icon*)&I_temp_C_11x14;
+    widget_add_icon_element(app->widget, x+2, y+3, unitWidget);
+    char t[14];//creates string for raw value
+    snprintf(t,14,"%+01d.%02d",app->offsetState->rawTemp / 100, abs(app->offsetState->rawTemp % 100));//stores value in string
+    widget_add_string_element(app->widget,x+14,y+13,AlignLeft,AlignBottom,FontPrimary,t);
+}
+
+void pod_widgets_redraw_humidity_offset(App* app, uint8_t x, uint8_t y) {
+    Icon* select = (Icon *)&I_selected_5x17;
+    int radius = 0;
+    int selection = 0;
+    if(app->offsetState->selection == 1)
+    {
+        radius = 3;
+        if(app->offsetState->edit)
+        {
+            switch (app->offsetState->digit)
+            {
+                case 3:
+                    selection = 12;
+                    break;
+                case 2:
+                    selection = 18;
+                    break;
+                case 1:
+                    selection = 27;
+                    break;
+                case 0:
+                    selection = 33;
+                    break;
+                default:
+                    break;
+            }
+            widget_add_icon_element(app->widget,x+selection,y+1,select);
+        }
+    }
+
+    widget_add_frame_element(app->widget,x,y,123,19,radius);  
+    Icon* valueWidget = (Icon*) &I_hum_9x15;
+    Icon* unitWidget = (Icon*)&I_percent_11x15;
+    widget_add_icon_element(app->widget, x+2, y+3, valueWidget);
+    widget_add_icon_element(app->widget, x+49, y+3, unitWidget);
+    char t[14];//creates string for raw value
+    snprintf(t,14,"%+01d.%02d",app->offsetState->rawHum / 100, abs(app->offsetState->rawHum % 100));//stores value in string
+    widget_add_string_element(app->widget,x+12,y+13,AlignLeft,AlignBottom,FontPrimary,t);
+}
+
+void pod_widgets_redraw_pressure_offset(App* app, uint8_t x, uint8_t y) {
+    Icon* select = (Icon *)&I_selected_5x17;
+    int radius = 0;
+    int selection = 0;
+    if(app->offsetState->selection == 2)
+    {
+        radius = 3;
+        if(app->offsetState->edit)
+        {
+            switch (app->offsetState->digit)
+            {
+                case 5:
+                    selection = 12;
+                    break;
+                case 4:
+                    selection = 18;
+                    break;
+                case 3:
+                    selection = 24;
+                    break;
+                case 2:
+                    selection = 30;
+                    break;
+                case 1:
+                    selection = 39;
+                    break;
+                case 0:
+                    selection = 45;
+                    break;
+                default:
+                    break;
+            }
+            widget_add_icon_element(app->widget,x+selection,y+1,select);
+        }
+    }
+
+    widget_add_frame_element(app->widget,x,y,123,19,radius);  
+    Icon* valueWidget = (Icon*) &I_pressure_7x13;
+    Icon* unitWidget = (Icon*)&I_mbar_15x15;
+    widget_add_icon_element(app->widget, x+2, y+3, valueWidget);
+    widget_add_icon_element(app->widget, x+59, y+3, unitWidget);
+    char t[14];//creates string for raw value
+    snprintf(t,14,"%+04d.%02d",app->offsetState->rawPres / 100, abs(app->offsetState->rawPres % 100));//stores value in string
+    widget_add_string_element(app->widget,x+12,y+13,AlignLeft,AlignBottom,FontPrimary,t);
 }

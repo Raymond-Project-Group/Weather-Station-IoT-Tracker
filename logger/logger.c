@@ -3,6 +3,7 @@
 #include <math.h>
 #include "../pod.h"
 #include "../helpers/file_locations.h"
+#include "../helpers/settings_helper.h"
 
 
 Stream* logger_stream_alloc(Storage* storage) {
@@ -37,11 +38,11 @@ void logger_stream_free(Stream* file_stream) {
 
 void logger_stream_append(App* app) {
     furi_mutex_acquire(app->mutex, FuriWaitForever);
-    append_bme_log(app->file_stream, app->bme280->data, !app->initialization_states->bme_initialized);
+    append_bme_log(app->file_stream, app, !app->initialization_states->bme_initialized);
     stream_write_char(app->file_stream, ',');
-    append_gps_log(app->file_stream, app->gps_uart->status, !app->initialization_states->gps_initialized);
+    append_gps_log(app->file_stream, app, !app->initialization_states->gps_initialized);
     stream_write_char(app->file_stream, ',');
-    append_ws_log(app->file_stream, app->pws, !app->initialization_states->pws_initialized);
+    append_ws_log(app->file_stream, app, !app->initialization_states->pws_initialized);
     stream_write_char(app->file_stream, '\n');
     furi_mutex_release(app->mutex);
 }
@@ -55,7 +56,7 @@ void logger_auto_append(void* context) {
     logger_stream_append(app);
 }
 
-void append_bme_log(Stream* file_stream, Bme280Data* bme_data, bool override) {
+void append_bme_log(Stream* file_stream, App* app, bool override) {
 
     // prevents accessing junk data
     if(override) {
@@ -66,12 +67,14 @@ void append_bme_log(Stream* file_stream, Bme280Data* bme_data, bool override) {
     stream_write_format(
         file_stream,
         "%f,%f,%f",
-        (double)bme_data->temperature,
-        (double)bme_data->humidity,
-        (double)bme_data->pressure);
+        (double)get_calibrated_temperature(app),
+        (double)get_calibrated_humidity(app),
+        (double)get_calibrated_pressure(app));
 }
 
-void append_gps_log(Stream* file_stream, GpsStatus* gps_status, bool override) {
+void append_gps_log(Stream* file_stream, App* app, bool override) {
+
+    GpsStatus* gps_status = app->gps_uart->status;
 
     // prevents accessing junk data
     if(override) {
@@ -106,7 +109,9 @@ void append_gps_log(Stream* file_stream, GpsStatus* gps_status, bool override) {
     stream_write_format(file_stream, "%d", gps_status->satellites_tracked);
 }
 
-void append_ws_log(Stream* file_stream, WeatherStationContext* ws, bool override) {
+void append_ws_log(Stream* file_stream, App* app, bool override) {
+
+    WeatherStationContext* ws = app->pws;
 
     // prevents accessing junk data
     if(override) {

@@ -41,9 +41,12 @@ App* app_alloc() { //allocate and initialize app.  add required views and scenes
     app->storage = furi_record_open(RECORD_STORAGE);
     app->file_stream = logger_stream_alloc(app->storage);
 
-    FURI_LOG_I("POD", "get to settings setup");
-
     app->settings = app_settings_setup(app->storage);
+
+    app->offsetState = malloc(sizeof(OffsetState));
+    app->offsetState->edit = false;
+    app->offsetState->selection = 0;
+    app->offsetState->digit = 0;
 
     app->initialization_states = (InitializationStates*) malloc(sizeof(InitializationStates));
     app->initialization_states->pws_initialized = false;
@@ -79,6 +82,8 @@ void app_free(App* app) { //free created spaces and close views and settings
     submenu_free(app->submenu);
     variable_item_list_free(app->variable_item_list);
     widget_free(app->widget);
+
+    free(app->offsetState);
 
     logger_stream_free(app->file_stream);
     furi_record_close(RECORD_STORAGE);
