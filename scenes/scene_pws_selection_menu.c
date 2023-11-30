@@ -31,10 +31,10 @@ void pod_pws_selection_scene_on_enter(void* context)
 {
     FURI_LOG_I("PODS", "PWS Selection Enter");
     App* app = context;
-    if(!app->weather_station_initialized)
+    if(!app->initialization_states->pws_initialized)
     {
         app->pws = ws_init(app);
-        app->weather_station_initialized = true;
+        app->initialization_states->pws_initialized = true;
         if(app->pws->txrx->rx_key_state == WSRxKeyStateIDLE) {
             ws_preset_init(app->pws, "AM650", subghz_setting_get_default_frequency(app->pws->setting), NULL, 0);
             ws_history_reset(app->pws->txrx->history);
@@ -149,7 +149,7 @@ void pod_pws_selection_scene_on_exit(void* context)
     {
         FURI_LOG_I("PODS", "PWS Clear Mem");
         ws_free(app->pws);
-        app->weather_station_initialized = false;
+        app->initialization_states->pws_initialized = false;
     }
     furi_message_queue_free(app->queue);
     furi_timer_free(app->timer);

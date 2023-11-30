@@ -118,6 +118,9 @@ bool validate_settings(AppSettings* settings) {
     if (settings->gps_baudrate >= Baud_Rates_Count)
         return false;
 
+    if (settings->coordinates >= Coordinate_Count)
+        return false;
+
     return true;
 }
 
@@ -127,6 +130,7 @@ void default_settings(AppSettings* settings) {
     	settings->humidity = 0;
     	settings->pressure = 0;
     	settings->time = 0;
+        settings->coordinates = 0;
     	settings->logMode = 0;
         settings->gps_baudrate = 0;
         settings->temp_offset = 0.0f;
