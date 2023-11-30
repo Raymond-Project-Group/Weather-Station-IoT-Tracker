@@ -124,7 +124,7 @@ WSHistoryStateAddKey ws_history_add_to_history(void* wsContext, void* context, S
     if(instance->last_index_write >= WS_HISTORY_MAX) return WSHistoryStateAddKeyOverflow;
 
     float rssi = furi_hal_subghz_get_rssi();
-    UNUSED(rssi);
+    //UNUSED(rssi);
     SubGhzProtocolDecoderBase* decoder_base = context;
     if((instance->code_last_hash_data == subghz_protocol_decoder_base_get_hash_data(decoder_base)) &&
        ((furi_get_tick() - instance->last_update_timestamp) < 500)) {
@@ -162,7 +162,7 @@ WSHistoryStateAddKey ws_history_add_to_history(void* wsContext, void* context, S
             subghz_protocol_decoder_base_serialize(decoder_base, item->flipper_string, preset);
             
             //LOG WS RECORD
-            logger_auto_append(ws->parentApp,(uint16_t)id);
+            logger_auto_append(ws->parentApp,(uint16_t)i, rssi);
 
             return WSHistoryStateAddKeyUpdateData; //*(I+1)  So the other side can be /3 - 1 to find I.  Then we can correctly log 
         }
@@ -223,7 +223,7 @@ WSHistoryStateAddKey ws_history_add_to_history(void* wsContext, void* context, S
         } while(false);
 
         //LOG WS RECORD
-        logger_auto_append(ws->parentApp,instance->last_index_write);
+        logger_auto_append(ws->parentApp,instance->last_index_write, rssi);
         
         instance->last_index_write++;
         return WSHistoryStateAddKeyNewDada;

@@ -36,24 +36,24 @@ void logger_stream_free(Stream* file_stream) {
     stream_free(file_stream);
 }
 
-void logger_stream_append(App* app, uint16_t idx) {
+void logger_stream_append(App* app, uint16_t idx, float rssi) {
     furi_mutex_acquire(app->mutex, FuriWaitForever);
     append_bme_log(app->file_stream, app, !app->initialization_states->bme_initialized);
     stream_write_char(app->file_stream, ',');
     append_gps_log(app->file_stream, app, !app->initialization_states->gps_initialized);
     stream_write_char(app->file_stream, ',');
-    append_ws_log(app->file_stream, app, idx, !app->initialization_states->pws_initialized);
+    append_ws_log(app->file_stream, app, idx, rssi, !app->initialization_states->pws_initialized);
     stream_write_char(app->file_stream, '\n');
     furi_mutex_release(app->mutex);
 }
 
-void logger_auto_append(void* context, uint16_t idx) {
+void logger_auto_append(void* context, uint16_t idx, float rssi) {
     furi_assert(context);
     App* app = (App*) context;
     if (app->settings->logMode == manual_only)
         return;
 
-    logger_stream_append(app, idx);
+    logger_stream_append(app, idx, rssi);
 }
 
 void append_bme_log(Stream* file_stream, App* app, bool override) {
@@ -109,12 +109,12 @@ void append_gps_log(Stream* file_stream, App* app, bool override) {
     stream_write_format(file_stream, "%d", gps_status->satellites_tracked);
 }
 
-void append_ws_log(Stream* file_stream, App* app, uint16_t idx, bool override) {
+void append_ws_log(Stream* file_stream, App* app, uint16_t idx, float rssi, bool override) {
 
 
     // prevents accessing junk data
     if(override) {
-        stream_write_cstring(file_stream, ",,,,");
+        stream_write_cstring(file_stream, ",,,,,");
         return;
     }
 
@@ -122,12 +122,17 @@ void append_ws_log(Stream* file_stream, App* app, uint16_t idx, bool override) {
     FuriString* protocol = furi_string_alloc();
 
     FlipperFormat* fff = ws_history_get_raw_data(app->pws->txrx->history,idx);//Gets Flipper Format and Raw Data
+
     flipper_format_rewind(fff);
+
     flipper_format_read_string(fff, "Protocol", protocol);//gets protocol name
+
     ws_block_generic_deserialize(ws_data,fff);
 
-    stream_write_format(file_stream, "%f, %f, %ld, %s, %ld", (double) ws_data->temp, (double) ws_data->humidity, ws_data->timestamp, furi_string_get_cstr(protocol), ws_data->id);
+    stream_write_format(file_stream, "%f, %f, %ld, %s, %ld, %f", (double) ws_data->temp, (double) ws_data->humidity, ws_data->timestamp, furi_string_get_cstr(protocol), ws_data->id, (double) rssi);
     
     furi_string_free(protocol);
     free(ws_data);
+
+    FURI_LOG_I(TAG, "ws log complete");
 }

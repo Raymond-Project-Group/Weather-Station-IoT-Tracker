@@ -249,7 +249,7 @@ bool pod_pws_display_scene_on_event(void* context, SceneManagerEvent event) {
                 break;
             case PWS_Display_Log_Event:
                 FURI_LOG_I(TAG, "Log Event");
-                logger_stream_append(app, app->pws->txrx->idx_menu_chosen); // Add new log line using current data
+                logger_stream_append(app, app->pws->txrx->idx_menu_chosen, app->pws->data->rssi); // Add new log line using current data
                 consumed = false;
                 break;
             }
