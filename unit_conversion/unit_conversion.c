@@ -80,3 +80,30 @@ float pressure_conversion(int start, int end, float press)
     }
     return millbar;
 }
+/*float decimal_dms_conversion(int start, int end, float degree)
+{
+    if(start == end){
+        return degree;
+    }
+    float ret = degree;
+    if(start == decimal){//convert to mbar
+        millbar = millbar * 68.948;
+    }
+    else if (start == inHg){
+        millbar = millbar * 33.864;
+    }
+    else if(start == mmHg || start == Torr){
+        millbar = millbar * 1.333;
+    }
+    
+    if(end == PSI){//convert to final
+        return millbar/68.948;
+    }
+    else if(end == inHg){
+        return millbar/33.864;
+    }
+    else if(end == mmHg || end == Torr){
+        return millbar/1.333;
+    }
+    return millbar;
+}*/

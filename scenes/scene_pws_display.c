@@ -52,17 +52,17 @@ void pod_pws_display_view_redraw_widget(App* app)
         uint8_t satX = 64;
         uint8_t satY = 83;//*/
 
-        FURI_LOG_I(TAG, "Weather Stations 1");
+        //FURI_LOG_I(TAG, "Weather Stations 1");
         if(tempY > app->canvas_y_offset)//Should you draw temp?
         {
             pod_widgets_redraw_temperature(app,tempX,tempY - app->canvas_y_offset,Pod_Pws_Display_Scene, app->deltaState);
         }
-        FURI_LOG_I(TAG, "Weather Stations 2");
+        //FURI_LOG_I(TAG, "Weather Stations 2");
         if(humY > app->canvas_y_offset)//Should you draw humidity?
         {
             pod_widgets_redraw_humidity(app,humX,humY - app->canvas_y_offset,Pod_Pws_Display_Scene, app->deltaState);
         }
-        FURI_LOG_I(TAG, "Weather Stations 3");
+        //FURI_LOG_I(TAG, "Weather Stations 3");
         if(timerY > app->canvas_y_offset)//Should you draw timer?
         {
             pod_widgets_redraw_timer(app,timerX,timerY - app->canvas_y_offset);
@@ -91,7 +91,7 @@ void pod_pws_display_view_redraw_widget(App* app)
         {
             pod_widgets_redraw_rssi(app,rssiX,rssiY - app->canvas_y_offset);
         }*/
-        FURI_LOG_I(TAG, "Weather Stations 4");
+        //FURI_LOG_I(TAG, "Weather Stations 4");
     }
     else
     {
@@ -206,22 +206,22 @@ void pod_pws_display_scene_on_enter(void* context)
 
     //Queue for events(Ticks or input)
     app->queue = furi_message_queue_alloc(8,sizeof(PwsDisplayEvent));
-    FURI_LOG_I(TAG, "Queue Running");
+    //FURI_LOG_I(TAG, "Queue Running");
 
     pod_pws_display_view_redraw_widget(app);
-    FURI_LOG_I(TAG, "Widgets Drawn");
+    //FURI_LOG_I(TAG, "Widgets Drawn");
     view_set_context(widget_get_view(app->widget), app);
-    FURI_LOG_I(TAG, "View Running");
+    //FURI_LOG_I(TAG, "View Running");
     //view_set_draw_callback(widget_get_view(app->widget),pod_pws_display_render_callback);
     view_set_input_callback(widget_get_view(app->widget),pod_pws_display_input_callback);
-    FURI_LOG_I(TAG, "View Running");
+    //FURI_LOG_I(TAG, "View Running");
     view_dispatcher_switch_to_view(app->view_dispatcher, Pod_Widget_View);
-    FURI_LOG_I(TAG, "Widget Running");
+    //FURI_LOG_I(TAG, "Widget Running");
 
     // Update the screen fairly frequently (every 1000 milliseconds = 1 second.)
     app->timer = furi_timer_alloc(pod_pws_display_tick_callback, FuriTimerTypePeriodic, app);
     furi_timer_start(app->timer, 1000);
-    FURI_LOG_I(TAG, "Timer Running");
+    //FURI_LOG_I(TAG, "Timer Running");
 }
 
 bool pod_pws_display_scene_on_event(void* context, SceneManagerEvent event)
@@ -234,13 +234,11 @@ bool pod_pws_display_scene_on_event(void* context, SceneManagerEvent event)
         case SceneManagerEventTypeTick:
             FURI_LOG_I(TAG,"PWS Scene Manager Event Type Tick");
             PwsDisplayEvent pws_event;
-            if(app->queue){
-            FURI_LOG_I(TAG,"PWS Scene Manager Event Type Tick1");}
             if(furi_message_queue_get(app->queue, &pws_event, FuriWaitForever) == FuriStatusOk) {
-                FURI_LOG_I(TAG,"PWS Scene Manager Event Type Tick2");
+                //FURI_LOG_I(TAG,"PWS Scene Manager Event Type Tick2");
                 switch(pws_event.type) {
                     case PWS_Display_Tick_Event:
-                        FURI_LOG_I(TAG,"PWS Tick Event");
+                        //FURI_LOG_I(TAG,"PWS Tick Event");
                         FURI_LOG_I(TAG,"Updating Screen");
                         furi_mutex_acquire(app->mutex, FuriWaitForever);
                         pod_pws_display_view_redraw_widget(app);//redraw widgets

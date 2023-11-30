@@ -6,6 +6,7 @@
 const char* TemperatureNames[Temp_Count] = {"F", "C", "K"};
 const char* HumidityNames[Humid_Count] = {"Relative", "Absolute"};
 const char* PressureNames[Pressure_Count] = {"mbar", "hPa", "PSI", "inHg", "mmHg", "Torr"};
+const char* CoordinateNames[Coordinate_Count] = {"Degrees", "DMS"};
 const char* TimeNames[Time_Count] = {"UTC", "EST"};
 const char* LogModeNames[Log_Mode_Count] = {"Auto", "Manual"};
 
@@ -59,6 +60,7 @@ void app_init_settings(App* app) { //initialize appsettings
     app->settings->temperature = 1;
     app->settings->humidity = 0;
     app->settings->pressure = 0;
+    app->settings->coordinates = 0;
     app->settings->time = 0;
     app->settings->logMode = 0;
 }

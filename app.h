@@ -36,6 +36,14 @@ typedef enum {
     Pressure_Count,
 } PressureUnits;
 extern const char* PressureNames[Pressure_Count]; // = {"mbar","hPa","PSI","inHg","mmHg","Torr"};
+
+typedef enum {
+    Decimal,
+    DMS,
+    Coordinate_Count,
+} CoordinateUnits;
+extern const char* CoordinateNames[Coordinate_Count]; // = {"mbar","hPa","PSI","inHg","mmHg","Torr"};
+
 typedef enum { UTC, EST, Time_Count } TimeStandards;
 extern const char* TimeNames[Time_Count];
 
@@ -46,6 +54,7 @@ typedef struct {
     TemperatureUnits temperature;
     HumidityUnits humidity;
     PressureUnits pressure;
+    CoordinateUnits coordinates;
     TimeStandards time;
     LogModes logMode;
 } AppSettings;

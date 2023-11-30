@@ -4,6 +4,7 @@
 #include "../unit_conversion/unit_conversion.h"
 #include "../weather_stations/weather_station.h"
 #include "scene_widgets.h"
+#include "math.h"
 #include <applications/services/gui/modules/widget.h>
 #include <applications/services/gui/modules/widget_elements/widget_element.h>
 #include <applications/services/gui/view.h>
@@ -289,7 +290,7 @@ void pod_widgets_redraw_time(App* app,uint8_t tX, uint8_t tY) //Draw Time
             break;
         case EST:
             timeWidgetUnits = (Icon *)&I_time_EST_11x13;
-            hours -=4; //This will might be added to unit conversions, but right now it doesnt need to be
+            hours -=5; //This  might be added to unit conversions, but right now it doesnt need to be.  Stupid Daylight Savings making things difficult
             if(hours<0){
                 hours+=24;
             }
@@ -320,14 +321,49 @@ void pod_widgets_redraw_latitude(App* app,uint8_t lX, uint8_t lY) //Draw Latitud
 {
     int length;
     GpsStatus* data = app->gps_uart->status;
-
     widget_add_frame_element(app->widget,lX,lY,61,19,0);  //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
     Icon* latitudeUnitWidget = (Icon*)&I_latitude_N_10x15;
     widget_add_icon_element(app->widget, lX+48, lY+2, latitudeUnitWidget);
-    length = snprintf(NULL,0,"%7.4f",(double)data->latitude)+1;//finds num of digits in latitude
+    if(isnan(data->latitude)){
+        widget_add_string_element(app->widget,lX+2,lY+13,AlignLeft,AlignBottom,FontPrimary,"---");
+        return;        
+    }
+    int degrees = (int)data->latitude;
+    float decimal = data->latitude-degrees;
+    if(decimal<0){//decimal needs to be positive
+        decimal*=-1;
+    }
+    int minutes = (int)(60*decimal);
+    int seconds = (int)(3600*decimal-60*minutes);
+    switch(app->settings->coordinates)
+    {
+        case Decimal:
+            length = snprintf(NULL,0,"%7.4f",(double)data->latitude)+1;//finds num of digits in latitude
+            break;
+        case DMS:
+            length = snprintf(NULL,0,"%d*%d'%d\"",degrees,minutes,seconds)+1;//finds num of digits in latitude
+            break;
+        default:
+            FURI_LOG_E(TAG, "Unrecognised coordinates type in pod_widgets_redraw_widget");
+            app_quit(app);
+            return;
+    }
     char t[length];//creates string for latitude
-    snprintf(t,length,"%7.4f",(double)data->latitude);//stores latitude in string
-    widget_add_string_element(app->widget,lX+2,lY+13,AlignLeft,AlignBottom,FontPrimary,t);
+    switch(app->settings->coordinates)
+    {
+        case Decimal:
+            snprintf(t,length,"%7.4f",(double)data->latitude);//stores latitude in string
+            widget_add_string_element(app->widget,lX+2,lY+13,AlignLeft,AlignBottom,FontPrimary,t);
+            break;
+        case DMS:
+            snprintf(t,length,"%d*%d'%d\"",degrees,minutes,seconds);//finds num of digits in latitude
+            widget_add_string_element(app->widget,lX+2,lY+13,AlignLeft,AlignBottom,FontPrimary,t);
+            break;
+        default:
+            FURI_LOG_E(TAG, "Unrecognised coordinates type in pod_widgets_redraw_widget");
+            app_quit(app);
+            return;
+    }
 }
 
 void pod_widgets_redraw_longitude(App* app,uint8_t lX, uint8_t lY) //Draw Longitude
@@ -338,10 +374,46 @@ void pod_widgets_redraw_longitude(App* app,uint8_t lX, uint8_t lY) //Draw Longit
     widget_add_frame_element(app->widget,lX,lY,61,19,0);  //WE HAVE 126x62 available canvas.  Three 19p boxes(borders one p apart) would take up 60 pixels, 1p off of canvas border would be all 62p.
     Icon* longitudeUnitWidget = (Icon*)&I_longitude_W_10x15;
     widget_add_icon_element(app->widget, lX+48, lY+2, longitudeUnitWidget);
-    length = snprintf(NULL,0,"%7.4f",(double)data->longitude)+1;//finds num of digits in longitude
+    if(isnan(data->longitude)){
+        widget_add_string_element(app->widget,lX+2,lY+13,AlignLeft,AlignBottom,FontPrimary,"---");
+        return;        
+    }
+    int degrees = (int)data->longitude;
+    float decimal = data->longitude-degrees;
+    if(decimal<0){//decimal needs to be positive
+        decimal*=-1;
+    }
+    int minutes = (int)(60*decimal);
+    int seconds = (int)(3600*decimal-60*minutes);
+    switch(app->settings->coordinates)
+    {
+        case Decimal:
+            length = snprintf(NULL,0,"%7.4f",(double)data->longitude)+1;//finds num of digits in longitude
+            break;
+        case DMS:
+            length = snprintf(NULL,0,"%d*%d'%d\"",degrees,minutes,seconds)+1;//finds num of digits in longitude
+            break;
+        default:
+            FURI_LOG_E(TAG, "Unrecognised coordinates type in pod_widgets_redraw_widget");
+            app_quit(app);
+            return;
+    }
     char t[length];//creates string for longitude
-    snprintf(t,length,"%7.4f",(double)data->longitude);//stores longitude in string
-    widget_add_string_element(app->widget,lX+2,lY+13,AlignLeft,AlignBottom,FontPrimary,t);
+    switch(app->settings->coordinates)
+    {
+        case Decimal:
+            snprintf(t,length,"%7.4f",(double)data->longitude);//stores longitude in string
+            widget_add_string_element(app->widget,lX+2,lY+13,AlignLeft,AlignBottom,FontPrimary,t);
+            break;
+        case DMS:
+            snprintf(t,length,"%d*%d'%d\"",degrees,minutes,seconds);//finds num of digits in longitude-
+            widget_add_string_element(app->widget,lX+2,lY+13,AlignLeft,AlignBottom,FontPrimary,t);
+            break;
+        default:
+            FURI_LOG_E(TAG, "Unrecognised coordinates type in pod_widgets_redraw_widget");
+            app_quit(app);
+            return;
+    }
 }
 
 void pod_widgets_redraw_altitude(App* app,uint8_t aX, uint8_t aY) //Draw Altitude
@@ -354,6 +426,10 @@ void pod_widgets_redraw_altitude(App* app,uint8_t aX, uint8_t aY) //Draw Altitud
     widget_add_icon_element(app->widget, aX+2, aY+4, altitudeWidget);
     Icon* altitudeUnitWidget = (Icon*)&I_m_10x15;
     widget_add_icon_element(app->widget, aX+50, aY+2, altitudeUnitWidget);
+    if(isnan(data->altitude)){
+        widget_add_string_element(app->widget,aX+14,aY+13,AlignLeft,AlignBottom,FontPrimary,"---");
+        return;        
+    }
     length = snprintf(NULL,0,"%.1f",(double)data->altitude)+1;//finds num of digits in altitude
     char t[length];//creates string for altitude
     snprintf(t,length,"%.1f",(double)data->altitude);//stores altitude in string

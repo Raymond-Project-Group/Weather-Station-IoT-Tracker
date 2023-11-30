@@ -276,14 +276,8 @@ void pod_display_view_redraw_pressure(App* app, uint8_t pX, uint8_t pY) //Draw P
 void pod_display_view_redraw_widget(App* app) {
     FURI_LOG_I(TAG, "Redrawing POD View Widgets");
     widget_reset(app->widget);
-    widget_add_frame_element(
-        app->widget,
-        0,
-        0,
-        128,
-        64,
-        0); //Flipper screen size is 128x64, this draws a border around it
-    widget_add_frame_element(app->widget, 126, app->canvas_y_offset + 2, 2, 15, 0); //Scroll Bar
+    widget_add_frame_element(app->widget,0,0,128,64,0); //Flipper screen size is 128x64, this draws a border around it
+    widget_add_frame_element(app->widget, 126, (15*app->canvas_y_offset)/20 + 2, 2, 15, 0); //Scroll Bar
     if(app->canvas_y_offset == 0)//Banner
     {
         Icon* podBanner = (Icon*)&I_pod_display_banner_top_90x15;
@@ -376,9 +370,7 @@ static bool pod_display_input_callback(
         app->canvas_y_offset -= 20;
         view_dispatcher_send_custom_event(app->view_dispatcher, POD_Display_Scroll_Event);
         consumed = true;
-    } else if(
-        event.input.type == InputTypeShort && event.input.key == InputKeyDown &&
-        app->canvas_y_offset < 60) {
+    } else if(event.input.type == InputTypeShort && event.input.key == InputKeyDown &&app->canvas_y_offset < 60) {
         app->canvas_y_offset += 20;
         view_dispatcher_send_custom_event(app->view_dispatcher, POD_Display_Scroll_Event);
         consumed = true;
