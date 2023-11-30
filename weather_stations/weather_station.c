@@ -28,7 +28,7 @@ static void ws_subghz_general_callback(SubGhzReceiver* receiver,SubGhzProtocolDe
 {
     furi_assert(context);
     WeatherStationContext* ws = context;
-    uint8_t ws_hist = ws_history_add_to_history(ws->txrx->history, decoder_base, ws->txrx->preset);
+    uint8_t ws_hist = ws_history_add_to_history(ws, decoder_base, ws->txrx->preset);
     float rssi = furi_hal_subghz_get_rssi();
     FURI_LOG_I(TAG,"RSSI: %f",(double)rssi);
 
@@ -52,7 +52,7 @@ static void ws_subghz_general_callback(SubGhzReceiver* receiver,SubGhzProtocolDe
         //ws->txrx->idx_menu_chosen = ws_hist/3 - 1;//So that the screen always shows the most recent one
         if(ws_block_generic_deserialize(ws->data->generic ,ws_history_get_raw_data(ws->txrx->history,ws->txrx->idx_menu_chosen)) == SubGhzProtocolStatusOk) {
             ws->data->rssi = rssi;
-            logger_auto_append(ws->parentApp);
+            //logger_auto_append(ws->parentApp);
         } 
     }
 

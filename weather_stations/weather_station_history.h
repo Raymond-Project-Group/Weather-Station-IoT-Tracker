@@ -5,6 +5,7 @@
 #include <furi_hal.h>
 #include <lib/flipper_format/flipper_format.h>
 #include <lib/subghz/types.h>
+
 typedef struct {
     FuriString* item_str;
     FlipperFormat* flipper_string;
@@ -116,12 +117,12 @@ bool ws_history_get_text_space_left(WSHistory* instance, FuriString* output);
 
 /** Add protocol to history
  * 
- * @param instance  - WSHistory instance
+ * @param instance  - Weather Station Context instance
  * @param context    - SubGhzProtocolCommon context
  * @param preset    - SubGhzRadioPreset preset
  * @return WSHistoryStateAddKey;
  */
-WSHistoryStateAddKey ws_history_add_to_history(WSHistory* instance, void* context, SubGhzRadioPreset* preset);
+WSHistoryStateAddKey ws_history_add_to_history(void* wsContext, void* context, SubGhzRadioPreset* preset);
 
 /** Get SubGhzProtocolCommonLoad to load into the protocol decoder bin data
  * 

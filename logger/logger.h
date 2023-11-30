@@ -11,14 +11,14 @@
 Stream* logger_stream_alloc(Storage* storage);
 void logger_stream_free(Stream* stream);
 
-void logger_stream_append(App* app);
-void logger_auto_append(void* context);
+void logger_stream_append(App* app, uint16_t idx);
+void logger_auto_append(void* context, uint16_t idx);
 
 void append_bme_log(Stream* file_stream, App* app, bool override);
 
 void append_gps_log(Stream* file_stream, App* app, bool override);
 
-void append_ws_log(Stream* file_stream, App* app, bool override);
+void append_ws_log(Stream* file_stream, App* app, uint16_t idx, bool override);
 
 
 #endif
