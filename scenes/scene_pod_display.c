@@ -172,7 +172,7 @@ void pod_display_scene_on_enter(void* context) {
     if(!app->initialization_states->pws_initialized)
     {
         FURI_LOG_I(TAG, "PWS Not Running");
-        app->pws = ws_init(app);
+        app->pws = ws_init(app,app->settings->freq);
         app->initialization_states->pws_initialized = true;
         if(app->pws->txrx->rx_key_state == WSRxKeyStateIDLE) {
             ws_preset_init(app->pws, "AM650", subghz_setting_get_default_frequency(app->pws->setting), NULL, 0);
@@ -197,7 +197,7 @@ void pod_display_scene_on_enter(void* context) {
         flipper_format_read_string(fff, "Protocol", app->pws->data->protocol_name);//gets protocol name
         ws_block_generic_deserialize(app->pws->data->generic ,fff);
     }
-    /*app->pws = ws_init(app);
+    /*app->pws = ws_init(app,app->settings->freq);
     app->weather_station_initialized = true;
 
     if(app->pws->txrx->rx_key_state == WSRxKeyStateIDLE) {

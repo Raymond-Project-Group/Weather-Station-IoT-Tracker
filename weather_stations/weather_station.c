@@ -163,7 +163,56 @@ void ws_sleep(WeatherStationContext* ws)
     ws->txrx->txrx_state = WSTxRxStateSleep;
 }
 
-WeatherStationContext* ws_init(void* app)
+void ws_hopper_update(void* context) {
+    furi_assert(context);
+    WeatherStationContext* ws = context;
+
+    switch(ws->txrx->hopper_state) {
+    case WSHopperStateOFF:
+    case WSHopperStatePause:
+        return;
+    case WSHopperStateRSSITimeOut:
+        if(ws->txrx->hopper_timeout != 0) {
+            ws->txrx->hopper_timeout--;
+            return;
+        }
+        break;
+    default:
+        break;
+    }
+    float rssi = -127.0f;
+    if(ws->txrx->hopper_state != WSHopperStateRSSITimeOut) {
+        // See RSSI Calculation timings in CC1101 17.3 RSSI
+        rssi = furi_hal_subghz_get_rssi();
+
+        // Stay if RSSI is high enough
+        if(rssi > -90.0f) {
+            ws->txrx->hopper_timeout = 10;
+            ws->txrx->hopper_state = WSHopperStateRSSITimeOut;
+            return;
+        }
+    } else {
+        ws->txrx->hopper_state = WSHopperStateRunning;
+    }
+    // Select next frequency
+    if(ws->txrx->hopper_idx_frequency <
+       subghz_setting_get_hopper_frequency_count(ws->setting) - 1) {
+        ws->txrx->hopper_idx_frequency++;
+    } else {
+        ws->txrx->hopper_idx_frequency = 0;
+    }
+    FURI_LOG_I("HOP","%ld",ws->txrx->preset->frequency);
+    if(ws->txrx->txrx_state == WSTxRxStateRx) {
+        ws_rx_end(ws);
+    };
+    if(ws->txrx->txrx_state == WSTxRxStateIDLE) {
+        subghz_receiver_reset(ws->txrx->receiver);
+        ws->txrx->preset->frequency =
+            subghz_setting_get_hopper_frequency(ws->setting, ws->txrx->hopper_idx_frequency);
+        ws_rx(ws, ws->txrx->preset->frequency);
+    }
+}
+WeatherStationContext* ws_init(void* app, uint8_t freq)
 {
     WeatherStationContext* ws = malloc(sizeof(WeatherStationContext));
 
@@ -178,9 +227,18 @@ WeatherStationContext* ws_init(void* app)
     ws->txrx = malloc(sizeof(WeatherStationTxRx));
     ws->txrx->preset = malloc(sizeof(SubGhzRadioPreset));
     ws->txrx->preset->name = furi_string_alloc();
-    ws_preset_init(ws, "AM650", subghz_setting_get_default_frequency(ws->setting), NULL, 0);
-
-    ws->txrx->hopper_state = WSHopperStateOFF;
+    ws->txrx->hopper_idx_frequency = 0;
+    if(freq<hopping)
+    {
+        ws_preset_init(ws, "AM650", Frequencies[freq], NULL, 0);
+        ws->txrx->hopper_state = WSHopperStateOFF;
+    }
+    else
+    {
+        ws_preset_init(ws, "AM650", Frequencies[0], NULL, 0);
+        ws->txrx->hopper_state = WSHopperStateRunning;
+        ws->hopper_timer = furi_timer_alloc(ws_hopper_update, FuriTimerTypePeriodic, ws);
+    }
     ws->txrx->history = ws_history_alloc();
     ws->txrx->worker = subghz_worker_alloc();
     ws->txrx->environment = subghz_environment_alloc();
@@ -198,7 +256,9 @@ WeatherStationContext* ws_init(void* app)
     ws->data->generic = malloc(sizeof(WSBlockGeneric));
     ws->data->protocol_name = furi_string_alloc();
 
-
+    
+    //ws->hopper_timer = furi_timer_alloc(ws_hopper_update, FuriTimerTypePeriodic, ws);
+    //furi_timer_start(ws->hopper_timer, 1); //update every tick
     // All the subghz examples i found disable charging; so we do too.
     furi_hal_power_suppress_charge_enter();
 
@@ -208,7 +268,9 @@ WeatherStationContext* ws_init(void* app)
 
     //init thread
     ws_init_thread(ws);
-
+    if(freq==hopping){
+        furi_timer_start(ws->hopper_timer, 100); //update every tick
+    }
     return ws;
 
 }
@@ -241,6 +303,10 @@ void ws_free(WeatherStationContext* ws)
     furi_string_free(ws->data->protocol_name);
     free(ws->data);
 
+    //free timer
+    if(ws->txrx->hopper_state != WSHopperStateOFF)
+        furi_timer_free(ws->hopper_timer);
+        
     //Worker & Protocol & History
     subghz_receiver_free(ws->txrx->receiver);
     subghz_environment_free(ws->txrx->environment);
@@ -249,6 +315,7 @@ void ws_free(WeatherStationContext* ws)
     furi_string_free(ws->txrx->preset->name);
     free(ws->txrx->preset);
     free(ws->txrx);
+
     
     //free thread
     ws_deinit_thread(ws);

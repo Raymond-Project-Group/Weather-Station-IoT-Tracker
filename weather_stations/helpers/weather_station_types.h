@@ -22,7 +22,7 @@ typedef enum {
 /** WSHopperState state */
 typedef enum {
     WSHopperStateOFF,
-    WSHopperStateRunnig,
+    WSHopperStateRunning,
     WSHopperStatePause,
     WSHopperStateRSSITimeOut,
 } WSHopperState;

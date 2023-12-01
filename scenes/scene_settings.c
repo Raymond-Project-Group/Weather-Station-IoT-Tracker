@@ -58,6 +58,12 @@ void pod_settings_change_baud_rate(VariableItem* rateChoice) {
     app->settings->gps_baudrate = index;
 }
 
+void pod_settings_change_frequency(VariableItem* freqChoice) {
+    App* app = variable_item_get_context(freqChoice);
+    uint8_t index = variable_item_get_current_value_index(freqChoice);
+    variable_item_set_current_value_text(freqChoice, FrequencyLables[index]);
+    app->settings->freq = index;
+}
 void pod_settings_scene_on_enter(void* context) {
     FURI_LOG_I(TAG, "Settings Scene entered");
     App* app = context;
@@ -81,9 +87,11 @@ void pod_settings_scene_on_enter(void* context) {
     VariableItem* log = variable_item_list_add(app->variable_item_list, "Log Mode", Log_Mode_Count, pod_settings_change_log_mode, app);
     variable_item_set_current_value_text(log, LogModeNames[app->settings->logMode]);
 
-    VariableItem* rate = variable_item_list_add(
-        app->variable_item_list, "Baud Rate", Baud_Rates_Count, pod_settings_change_baud_rate, app);
+    VariableItem* rate = variable_item_list_add(app->variable_item_list, "Baud Rate", Baud_Rates_Count, pod_settings_change_baud_rate, app);
     variable_item_set_current_value_text(rate, GPSBaudRateLabels[app->settings->gps_baudrate]);
+
+    VariableItem* freq = variable_item_list_add(app->variable_item_list, "Freq(MHz)", Frequency_Count, pod_settings_change_frequency, app);
+    variable_item_set_current_value_text(freq, FrequencyLables[app->settings->freq]);
 
     view_dispatcher_switch_to_view(app->view_dispatcher, Pod_Variable_Item_List_View);
 

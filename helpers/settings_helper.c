@@ -121,6 +121,9 @@ bool validate_settings(AppSettings* settings) {
     if (settings->coordinates >= Coordinate_Count)
         return false;
 
+    if (settings->freq >= Frequency_Count)
+        return false;
+
     return true;
 }
 
@@ -133,6 +136,7 @@ void default_settings(AppSettings* settings) {
         settings->coordinates = 0;
     	settings->logMode = 0;
         settings->gps_baudrate = 0;
+        settings->freq = 10;
         settings->temp_offset = 0.0f;
         settings->humidity_offset = 0.0f;
         settings->pressure_offset = 0.0f;

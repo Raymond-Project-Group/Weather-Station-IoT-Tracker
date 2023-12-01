@@ -12,6 +12,8 @@ const char* TimeNames[Time_Count] = {"UTC", "EST"};
 const char* LogModeNames[Log_Mode_Count] = {"Auto", "Manual"};
 const char* GPSBaudRateLabels[Baud_Rates_Count] = { "4800", "9600", "19200", "38400", "57600", "115200"};
 const int GPSBaudRates[6] = { 4800, 9600, 19200, 38400, 57600, 115200 };
+const char* FrequencyLables[Frequency_Count] = { "300.00", "303.78", "304.25", "310.00", "315.00", "318.00", "390.00", "418.00", "433.07", "433.42", "433.92", "434.42", "434.77","438.90","868.35","915.00","925.00", "Hop"};
+const uint32_t Frequencies[Frequency_Count-1] = { 300000000, 303780000, 304250000, 310000000, 315000000, 318000000, 390000000, 418000000, 433070000, 433420000, 433920000, 434420000, 434770000,438900000,868350000,915000000,925000000 };
 
 App* app_alloc() { //allocate and initialize app.  add required views and scenes
     App* app = malloc(sizeof(App));

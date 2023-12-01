@@ -48,11 +48,11 @@ typedef struct {
     //NotificationApp* notifications;
     SubGhzSetting* setting;
     FuriThread* thread;//setup thread of ws
-    //FuriTimer* timer; //Used for tick callbacks
+    FuriTimer* hopper_timer; //Used for tick callbacks
     void* parentApp; // need this for the logger, out of options that aren't bad code practices
 }WeatherStationContext;
 
-WeatherStationContext* ws_init(void* parentApp);
+WeatherStationContext* ws_init(void* parentApp, uint8_t freq);
 void ws_free(WeatherStationContext* ws);
 
 bool ws_set_preset(WeatherStationContext* ws, const char* preset);
@@ -69,7 +69,7 @@ void ws_init_data(WeatherStationContext* ws);
 void ws_init_thread(WeatherStationContext* ws); 
 void ws_deinit_thread(WeatherStationContext* ws);
 
-
+void ws_hopper_update(void* context) ;
 
 /*void ws_preset_init(void* context,const char* preset_name,uint32_t frequency,uint8_t* preset_data,size_t preset_data_size);
 bool ws_set_preset(WeatherStationContext* app, const char* preset);
