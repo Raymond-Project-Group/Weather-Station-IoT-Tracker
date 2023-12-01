@@ -3,7 +3,8 @@
 #include <lib/toolbox/stream/stream.h>
 #include <lib/subghz/receiver.h>
 #include "protocols/ws_generic.h"
-
+#include "weather_station.h"
+#include "../logger/logger.h"
 #include <furi.h>
 #define WS_HISTORY_MAX 50
 #define TAG "WSHistory"
@@ -115,12 +116,15 @@ void ws_history_get_text_item_menu(WSHistory* instance, FuriString* output, uint
     furi_string_set(output, item->item_str);
 }
 
-WSHistoryStateAddKey ws_history_add_to_history(WSHistory* instance, void* context, SubGhzRadioPreset* preset) {
-    furi_assert(instance);
+WSHistoryStateAddKey ws_history_add_to_history(void* wsContext, void* context, SubGhzRadioPreset* preset) {
     furi_assert(context);
-
+    furi_assert(wsContext);
+    WeatherStationContext* ws = wsContext;
+    WSHistory* instance = ws->txrx->history;
     if(instance->last_index_write >= WS_HISTORY_MAX) return WSHistoryStateAddKeyOverflow;
 
+    float rssi = furi_hal_subghz_get_rssi();
+    //UNUSED(rssi);
     SubGhzProtocolDecoderBase* decoder_base = context;
     if((instance->code_last_hash_data == subghz_protocol_decoder_base_get_hash_data(decoder_base)) &&
        ((furi_get_tick() - instance->last_update_timestamp) < 500)) {
@@ -156,6 +160,10 @@ WSHistoryStateAddKey ws_history_add_to_history(WSHistory* instance, void* contex
             Stream* flipper_string_stream = flipper_format_get_raw_stream(item->flipper_string);
             stream_clean(flipper_string_stream);
             subghz_protocol_decoder_base_serialize(decoder_base, item->flipper_string, preset);
+            
+            //LOG WS RECORD
+            logger_auto_append(ws->parentApp,(uint16_t)i, rssi);
+
             return WSHistoryStateAddKeyUpdateData; //*(I+1)  So the other side can be /3 - 1 to find I.  Then we can correctly log 
         }
     }
@@ -213,6 +221,10 @@ WSHistoryStateAddKey ws_history_add_to_history(WSHistory* instance, void* contex
                 item->item_str, "%s %llX", furi_string_get_cstr(instance->tmp_string), data);
 
         } while(false);
+
+        //LOG WS RECORD
+        logger_auto_append(ws->parentApp,instance->last_index_write, rssi);
+        
         instance->last_index_write++;
         return WSHistoryStateAddKeyNewDada;
     }

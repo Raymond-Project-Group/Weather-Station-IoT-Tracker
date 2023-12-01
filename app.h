@@ -54,6 +54,9 @@ typedef enum { br4800, br9600, br19200, br38400, br57600, br115200, Baud_Rates_C
 extern const char* GPSBaudRateLabels[Baud_Rates_Count];
 extern const int GPSBaudRates[6];
 
+typedef enum { fr30000, fr303878, fr30425, fr31000, fr31500, fr31800, fr39000, fr41800, fr43307, fr43342, fr43392, fr43442, fr43477,fr43890,fr86835,fr91500,fr92500, hopping, Frequency_Count } Frequency;
+extern const char* FrequencyLables[Frequency_Count];
+extern const uint32_t Frequencies[Frequency_Count-1];
 
 typedef struct {
     bool edit;
@@ -78,6 +81,7 @@ typedef struct {
     TimeStandards time;
     LogModes logMode;
     BaudRates gps_baudrate;
+    Frequency freq;
     float temp_offset;
     float humidity_offset;
     float pressure_offset;

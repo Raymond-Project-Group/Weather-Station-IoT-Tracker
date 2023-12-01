@@ -156,7 +156,7 @@ void pod_pws_display_scene_on_enter(void* context) {
     if(!app->initialization_states->pws_initialized)
     {
         FURI_LOG_I(TAG, "PWS Not Running");
-        app->pws = ws_init(app);
+        app->pws = ws_init(app,app->settings->freq);
         app->initialization_states->pws_initialized = true;
         if(app->pws->txrx->rx_key_state == WSRxKeyStateIDLE) {
             ws_preset_init(app->pws, "AM650", subghz_setting_get_default_frequency(app->pws->setting), NULL, 0);
@@ -249,7 +249,7 @@ bool pod_pws_display_scene_on_event(void* context, SceneManagerEvent event) {
                 break;
             case PWS_Display_Log_Event:
                 FURI_LOG_I(TAG, "Log Event");
-                logger_stream_append(app); // Add new log line using current data
+                logger_stream_append(app, app->pws->txrx->idx_menu_chosen, app->pws->data->rssi); // Add new log line using current data
                 consumed = false;
                 break;
             }

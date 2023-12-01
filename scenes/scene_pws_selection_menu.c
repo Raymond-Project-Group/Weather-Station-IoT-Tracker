@@ -33,7 +33,7 @@ void pod_pws_selection_scene_on_enter(void* context)
     App* app = context;
     if(!app->initialization_states->pws_initialized)
     {
-        app->pws = ws_init(app);
+        app->pws = ws_init(app,app->settings->freq);
         app->initialization_states->pws_initialized = true;
         if(app->pws->txrx->rx_key_state == WSRxKeyStateIDLE) {
             ws_preset_init(app->pws, "AM650", subghz_setting_get_default_frequency(app->pws->setting), NULL, 0);

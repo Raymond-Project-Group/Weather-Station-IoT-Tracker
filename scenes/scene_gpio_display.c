@@ -215,7 +215,7 @@ bool pod_gpio_display_scene_on_event(void* context, SceneManagerEvent event) {
             break;
         case GPIO_Display_Log_Event:
             FURI_LOG_I(TAG, "Log Event");
-            logger_stream_append(app); // Add new log line using current data
+            logger_stream_append(app, 0, 0); // Add new log line using current data
             consumed = false;
             break;
         }
