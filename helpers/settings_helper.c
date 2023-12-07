@@ -124,6 +124,19 @@ bool validate_settings(AppSettings* settings) {
     if (settings->freq >= Frequency_Count)
         return false;
 
+    // Check if any of the floats are NaN
+    if (settings->temp_offset == settings->temp_offset || settings->humidity_offset == settings->humidity_offset || settings->pressure_offset == settings->pressure_offset)
+        return false;
+
+    if (settings->temp_offset > 10 || settings->temp_offset < -10)
+        return false;
+
+    if (settings->humidity_offset > 10 || settings->humidity_offset < -10)
+        return false;
+
+    if (settings->pressure_offset > 10 || settings->pressure_offset < -10)
+        return false;
+
     return true;
 }
 
